@@ -1,12 +1,19 @@
-- name: My first play
+- name: System Setup
   hosts: myhosts
   tasks:
-    - name: Install aptitude
+    - name: Update all system packages
+      ansible.builtin.apt:
+        autoremove: true
+        upgrade: true
+        update_cache: true
+
+    - name: Install aptitude # noqa package-latest
       ansible.builtin.apt:
         name: aptitude
         state: latest
         update_cache: true
-    - name: Install required system packages
+
+    - name: Install required system packages # noqa package-latest
       ansible.builtin.apt:
         name:
           - apt-transport-https
@@ -29,7 +36,7 @@
         repo: deb https://download.docker.com/linux/ubuntu noble stable
         state: present
 
-    - name: Update apt and install docker-ce
+    - name: Update apt and install docker-ce # noqa package-latest
       ansible.builtin.apt:
         name:
           - docker-ce
@@ -40,22 +47,16 @@
         state: latest
         update_cache: true
 
-    - name: Update all system packages
-      ansible.builtin.apt:
-        autoremove: true
-        upgrade: true
-        update_cache: true
-
-    - name: Create directories
+- name: Install Hoarder via Docker compose
+  hosts: myhosts
+  tasks:
+    - name: Create the config directory
       ansible.builtin.file:
-        path: "{{ item.path }}"
+        path: "/hoarder/"
         state: directory
         mode: "0755"
-      loop:
-        - path: "/hoarder/"
-        - path: "/caddy/"
 
-    - name: Copy the docker and caddy config
+    - name: Copy the docker configuration
       ansible.builtin.copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
@@ -65,8 +66,6 @@
           dest: "/hoarder/"
         - src: hoarder.env
           dest: "/hoarder/.env"
-        - src: caddy.env
-          dest: "/caddy/.env"
 
     - name: Boot the compose
       community.docker.docker_compose_v2:
@@ -74,12 +73,20 @@
         pull: always
         state: present
 
-    - name: Print message
-      ansible.builtin.debug:
-        msg: Hello world
-
 - name: Install caddy
   hosts: myhosts
+
+  pre_tasks:
+    - name: Create the config directory
+      ansible.builtin.file:
+        path: "/caddy/"
+        state: directory
+        mode: "0755"
+    - name: Copy the configuration
+      ansible.builtin.copy:
+        src: "caddy.env"
+        dest: "/caddy/.env"
+        mode: "0644"
 
   roles:
     - role: caddy_ansible.caddy_ansible
