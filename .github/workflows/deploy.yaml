@@ -11,6 +11,11 @@ jobs:
     name: Deploy via Tailscale
     runs-on: ubuntu-latest
     steps:
+      - name: Set up ssh dir
+        run: |
+          mkdir -p ~/.ssh/
+          chmod 0600 ~/.ssh
+          touch ~/.ssh/known_hosts
       - name: Tailscale
         uses: tailscale/github-action@v2
         with:
@@ -19,5 +24,6 @@ jobs:
           tags: tag:gha
       - name: ls -lAH on the remote
         run: |
+          ssh-keyscan hoarder >> ~/.ssh/known_hosts
           ssh root@hoarder -- ls -lAh /
         shell: bash
