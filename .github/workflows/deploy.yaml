@@ -15,15 +15,19 @@ jobs:
         run: |
           mkdir -p ~/.ssh/
           touch ~/.ssh/known_hosts
-          chmod 0600 ~/.ssh/known_hosts
+          # chmod 0600 ~/.ssh/known_hosts
+        shell: bash
       - name: Tailscale
         uses: tailscale/github-action@v2
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:gha
-      - name: ls -lAH on the remote
+      - name: Run ssh keyscan
         run: |
-          ssh-keyscan hoarder >> ~/.ssh/known_hosts
-          ssh root@hoarder -- ls -lAh /
+          ssh-keyscan hoarder.forest-catfish.ts.net >> ~/.ssh/known_hosts
+        shell: bash
+      - name: Run ls -lAh on the remote
+        run: |
+          ssh root@hoarder.forest-catfish.ts.net -- ls -lAh /
         shell: bash
