@@ -1,0 +1,123 @@
+- name: My first play
+  hosts: myhosts
+  tasks:
+    - name: Install aptitude
+      ansible.builtin.apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+    - name: Install required system packages
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - virtualenv
+          - python3-setuptools
+        state: latest
+        update_cache: true
+
+    - name: Add Docker GPG apt Key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      ansible.builtin.apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu noble stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: latest
+        update_cache: true
+
+    - name: Update all system packages
+      ansible.builtin.apt:
+        autoremove: true
+        upgrade: true
+        update_cache: true
+
+    - name: Create directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - path: "/hoarder/"
+        - path: "/caddy/"
+
+    - name: Copy the docker and caddy config
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: "0644"
+      loop:
+        - src: docker-compose.yml
+          dest: "/hoarder/"
+        - src: hoarder.env
+          dest: "/hoarder/.env"
+        - src: caddy.env
+          dest: "/caddy/.env"
+
+    - name: Boot the compose
+      community.docker.docker_compose_v2:
+        project_src: /hoarder/
+        pull: always
+        state: present
+
+    - name: Print message
+      ansible.builtin.debug:
+        msg: Hello world
+
+- name: Install caddy
+  hosts: myhosts
+
+  roles:
+    - role: caddy_ansible.caddy_ansible
+      caddy_update: true
+      caddy_config_update: true
+      caddy_packages: ["github.com/caddy-dns/namecheap"]
+      caddy_environment_files:
+        - "/caddy/.env"
+      caddy_systemd_capabilities_enabled: true
+      caddy_systemd_network_dependency: false
+      caddy_config: |
+        {
+        	log {
+        		output file /var/log/caddy/access.log
+        	}
+        	email bryan@bryanwweber.com
+        }
+
+        (ts_host) {
+        	bind {env.TAILNET_IP}
+
+        	@blocked not remote_ip 100.64.0.0/10
+
+        	tls {
+          		resolvers 1.1.1.1
+          		dns namecheap {
+          			api_key {env.NAMECHEAP_API_KEY}
+          			user {env.NAMECHEAP_API_USER}
+          			# api_endpoint https://api.sandbox.namecheap.com/xml.response
+          			api_endpoint https://api.namecheap.com/xml.response
+          			client_ip {env.PUBLIC_CLIENT_IP}
+          		}
+        	}
+
+        	respond @blocked "Unauthorized" 403
+        }
+
+        hoarder.bryanwweber.com {
+        	import ts_host
+        	reverse_proxy localhost:3000
+        }

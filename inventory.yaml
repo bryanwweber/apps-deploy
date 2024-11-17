@@ -1,0 +1,6 @@
+myhosts:
+  hosts:
+    hoarder:
+      ansible_host: "100.66.162.10"
+      ansible_user: root
+      ansible_python_interpreter: auto_silent
