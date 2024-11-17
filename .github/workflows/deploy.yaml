@@ -14,8 +14,8 @@ jobs:
       - name: Set up ssh dir
         run: |
           mkdir -p ~/.ssh/
-          chmod 0600 ~/.ssh
           touch ~/.ssh/known_hosts
+          chmod 0600 ~/.ssh/known_hosts
       - name: Tailscale
         uses: tailscale/github-action@v2
         with:
