@@ -1,5 +1,6 @@
 - name: System Setup
   hosts: myhosts
+  become: true
   tasks:
     - name: Update all system packages
       ansible.builtin.apt:
@@ -47,6 +48,63 @@
         state: latest
         update_cache: true
 
+## https://help.ubuntu.com/community/AutomaticSecurityUpdates
+- name: Configure automated updates (Ubuntu)
+  hosts: myhosts
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install apt prerequisites for automated reboots
+      ansible.builtin.apt:
+        name: update-notifier-common
+        state: present
+
+    - name: Create unattended upgrades configuration file
+      ansible.builtin.blockinfile:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        block: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+        marker: "// {mark} ANSIBLE MANAGED BLOCK - unattended_upgrades settings"
+        create: true
+        mode: "0644"
+        owner: root
+        group: root
+      register: unattended_upgrades_config_set
+
+    - name: Enable automated reboots
+      ansible.builtin.blockinfile:
+        dest: /etc/apt/apt.conf.d/50unattended-upgrades
+        block: |
+          Unattended-Upgrade::Automatic-Reboot "true";
+          Unattended-Upgrade::Automatic-Reboot-Time "04:00";
+        marker: "// {mark} ANSIBLE MANAGED BLOCK - unattended_upgrades settings"
+        create: true
+        mode: "0644"
+        owner: root
+        group: root
+      register: unattended_upgrades_settings_set
+
+    - name: Dpkg reconfigure
+      ansible.builtin.command:
+        cmd: dpkg-reconfigure -f noninteractive unattended-upgrades
+      register: dpkg_reconfigure_unattended_upgrades
+      when:
+        - unattended_upgrades_config_set.changed or
+          unattended_upgrades_settings_set.changed
+
+    - name: Configure updates installation timing
+      ansible.builtin.lineinfile:
+        path: /lib/systemd/system/apt-daily-upgrade.timer
+        regexp: '^OnCalendar'
+        line: OnCalendar=*-*-* 03:30
+
+    - name: Configure updates installation timing offset
+      ansible.builtin.lineinfile:
+        path: '/lib/systemd/system/apt-daily-upgrade.timer'
+        regexp: '^RandomizedDelaySec'
+        line: 'RandomizedDelaySec=15m'
+
 - name: Install Hoarder via Docker compose
   hosts: myhosts
   tasks:
@@ -68,6 +126,7 @@
           dest: "/hoarder/.env"
 
     - name: Boot the compose
+      become: true
       community.docker.docker_compose_v2:
         project_src: /hoarder/
         pull: always
@@ -75,6 +134,7 @@
 
 - name: Install caddy
   hosts: myhosts
+  become: true
 
   pre_tasks:
     - name: Create the config directory
@@ -92,7 +152,8 @@
     - role: caddy_ansible.caddy_ansible
       caddy_update: true
       caddy_config_update: true
-      caddy_packages: ["github.com/caddy-dns/namecheap"]
+      caddy_packages:
+        - "github.com/caddy-dns/namecheap"
       caddy_environment_files:
         - "/caddy/.env"
       caddy_systemd_capabilities_enabled: true
