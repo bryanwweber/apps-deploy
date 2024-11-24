@@ -8,23 +8,20 @@ jobs:
     name: Deploy via Tailscale
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
       - name: Set up ssh dir
         run: |
           mkdir -p ~/.ssh/
-          touch ~/.ssh/known_hosts
+          echo "${{ vars.HOARDER_KNOWN_HOST }}" >> ~/.ssh/known_hosts
+          chmod 0600 ~/.ssh/known_hosts
         shell: bash
-      - name: Checkout the repository
-        uses: actions/checkout@v4
       - name: Tailscale
         uses: tailscale/github-action@v2
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:gha
-      - name: Run ssh keyscan
-        run: |
-          ssh-keyscan hoarder.forest-catfish.ts.net >> ~/.ssh/known_hosts
-        shell: bash
       - name: Set up taskfile
         uses: jdx/mise-action@v2
         with:
