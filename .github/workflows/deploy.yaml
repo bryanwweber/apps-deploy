@@ -1,9 +1,6 @@
 name: Deploy Apps using Ansible
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -15,8 +12,9 @@ jobs:
         run: |
           mkdir -p ~/.ssh/
           touch ~/.ssh/known_hosts
-          # chmod 0600 ~/.ssh/known_hosts
         shell: bash
+      - name: Checkout the repository
+        uses: actions/checkout@v4
       - name: Tailscale
         uses: tailscale/github-action@v2
         with:
@@ -27,7 +25,17 @@ jobs:
         run: |
           ssh-keyscan hoarder.forest-catfish.ts.net >> ~/.ssh/known_hosts
         shell: bash
-      - name: Run ls -lAh on the remote
+      - name: Set up taskfile
+        uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+      - name: Deploy the stack
         run: |
-          ssh root@hoarder.forest-catfish.ts.net -- ls -lAh /
-        shell: bash
+          task run-playbook
+        env:
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          MEILI_MASTER_KEY: ${{ secrets.MEILI_MASTER_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          NAMECHEAP_API_KEY: ${{ secrets.NAMECHEAP_API_KEY }}
+          NAMECHEAP_API_USER: ${{ secrets.NAMECHEAP_API_USER }}
