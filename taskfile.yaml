@@ -1,6 +1,17 @@
 version: "3"
 
 tasks:
-  run-playbook:
+  inject-secrets:
     cmds:
-      - uv run ansible-playbook -i inventory.yaml playbook.yaml
+      - op inject -i hoarder.env.tpl -o hoarder.env
+      - op inject -i caddy.env.tpl -o caddy.env
+  cleanup-secrets:
+    cmds:
+      - defer: rm hoarder.env caddy.env
+  run-playbook:
+    deps:
+      - inject-secrets
+    cmds:
+      - uv run ansible-playbook playbook.yaml --check
+      - defer:
+          task: cleanup-secrets

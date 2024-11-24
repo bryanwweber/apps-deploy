@@ -85,7 +85,7 @@
         group: root
       register: unattended_upgrades_settings_set
 
-    - name: Dpkg reconfigure
+    - name: Dpkg reconfigure  # noqa no-changed-when
       ansible.builtin.command:
         cmd: dpkg-reconfigure -f noninteractive unattended-upgrades
       register: dpkg_reconfigure_unattended_upgrades
