@@ -30,6 +30,11 @@ jobs:
         with:
           install: true
           cache: true
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: true
       - name: Deploy the stack
         run: |
           task run-playbook
