@@ -20,3 +20,6 @@ tasks:
       - uv run ansible-playbook playbook.yaml --check
       - defer:
           task: cleanup-secrets
+  install-ansible-deps:
+    cmds:
+      - uv run ansible-galaxy install -r requirements.yml

@@ -1,4 +1,3 @@
-# Install a role from GitHub
 roles:
   - name: caddy_ansible.caddy_ansible
     src: https://github.com/caddy-ansible/caddy-ansible/archive/v3.2.0.tar.gz

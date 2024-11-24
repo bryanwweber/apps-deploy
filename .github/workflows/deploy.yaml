@@ -37,6 +37,7 @@ jobs:
           enable-cache: true
       - name: Deploy the stack
         run: |
+          task install-ansible-deps
           task run-playbook
         env:
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
