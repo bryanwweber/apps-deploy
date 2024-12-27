@@ -1,6 +1,7 @@
 - name: System Setup
   hosts: myhosts
   become: true
+  tags: setup
   tasks:
     - name: Update all system packages
       ansible.builtin.apt:
@@ -51,6 +52,7 @@
 ## https://help.ubuntu.com/community/AutomaticSecurityUpdates
 - name: Configure automated updates (Ubuntu)
   hosts: myhosts
+  tags: setup
   become: true
   gather_facts: false
   tasks:
@@ -85,7 +87,7 @@
         group: root
       register: unattended_upgrades_settings_set
 
-    - name: Dpkg reconfigure  # noqa no-changed-when
+    - name: Dpkg reconfigure # noqa no-changed-when
       ansible.builtin.command:
         cmd: dpkg-reconfigure -f noninteractive unattended-upgrades
       register: dpkg_reconfigure_unattended_upgrades
@@ -96,17 +98,18 @@
     - name: Configure updates installation timing
       ansible.builtin.lineinfile:
         path: /lib/systemd/system/apt-daily-upgrade.timer
-        regexp: '^OnCalendar'
+        regexp: "^OnCalendar"
         line: OnCalendar=*-*-* 03:30
 
     - name: Configure updates installation timing offset
       ansible.builtin.lineinfile:
-        path: '/lib/systemd/system/apt-daily-upgrade.timer'
-        regexp: '^RandomizedDelaySec'
-        line: 'RandomizedDelaySec=15m'
+        path: "/lib/systemd/system/apt-daily-upgrade.timer"
+        regexp: "^RandomizedDelaySec"
+        line: "RandomizedDelaySec=15m"
 
 - name: Install Hoarder via Docker compose
   hosts: myhosts
+  tags: hoarder
   tasks:
     - name: Create the config directory
       ansible.builtin.file:
@@ -135,6 +138,7 @@
 - name: Install caddy
   hosts: myhosts
   become: true
+  tags: caddy
 
   pre_tasks:
     - name: Create the config directory
