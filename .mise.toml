@@ -1,2 +1,7 @@
 [tools]
+bun = "latest"
+node = "22"
+"npm:@hoarderapp/cli" = "latest"
+python = "3.12"
 task = "latest"
+uv = "latest"
