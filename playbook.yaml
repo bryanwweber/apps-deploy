@@ -107,13 +107,13 @@
         regexp: "^RandomizedDelaySec"
         line: "RandomizedDelaySec=15m"
 
-- name: Install Hoarder via Docker compose
+- name: Install Karakeep via Docker compose
   hosts: myhosts
-  tags: hoarder
+  tags: karakeep
   tasks:
     - name: Create the config directory
       ansible.builtin.file:
-        path: "/hoarder/"
+        path: "/karakeep/"
         state: directory
         mode: "0755"
 
@@ -124,14 +124,14 @@
         mode: "0644"
       loop:
         - src: docker-compose.yml
-          dest: "/hoarder/"
-        - src: hoarder.env
-          dest: "/hoarder/.env"
+          dest: "/karakeep/"
+        - src: karakeep.env
+          dest: "/karakeep/.env"
 
     - name: Boot the compose
       become: true
       community.docker.docker_compose_v2:
-        project_src: /hoarder/
+        project_src: /karakeep/
         pull: always
         state: present
 
@@ -190,6 +190,11 @@
         }
 
         hoarder.bryanwweber.com {
+        	import ts_host
+        	reverse_proxy localhost:3000
+        }
+
+        karakeep.bryanwweber.com {
         	import ts_host
         	reverse_proxy localhost:3000
         }

@@ -1,4 +1,4 @@
-# Deploy Apps on Talnet with Ansible
+# Deploy Apps on Tailnet with Ansible
 
 Generate secrets locally:
 
@@ -9,5 +9,5 @@ task generate-secrets
 Deploy the app for updates:
 
 ```bash
-uv run ansible-playbook playbook.yaml --tags hoarder
+uv run ansible-playbook playbook.yaml --tags karakeep
 ```
