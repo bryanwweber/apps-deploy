@@ -189,11 +189,6 @@
         	respond @blocked "Unauthorized" 403
         }
 
-        hoarder.bryanwweber.com {
-        	import ts_host
-        	reverse_proxy localhost:3000
-        }
-
         karakeep.bryanwweber.com {
         	import ts_host
         	reverse_proxy localhost:3000
