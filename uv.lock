@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.13"
 resolution-markers = [
     "sys_platform != 'win32'",
@@ -207,6 +208,7 @@ dependencies = [
     { name = "ansible", marker = "sys_platform != 'win32'" },
     { name = "ansible-dev-tools", marker = "sys_platform != 'win32'" },
     { name = "ansible-lint", marker = "sys_platform != 'win32'" },
+    { name = "jmespath", marker = "sys_platform != 'win32'" },
 ]
 
 [package.dev-dependencies]
@@ -221,6 +223,7 @@ requires-dist = [
     { name = "ansible", specifier = ">=10.6.0" },
     { name = "ansible-dev-tools", specifier = ">=24.10.2" },
     { name = "ansible-lint", specifier = ">=6.16" },
+    { name = "jmespath", specifier = ">=1.0.1" },
 ]
 
 [package.metadata.requires-dev]
