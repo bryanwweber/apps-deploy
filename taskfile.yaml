@@ -3,11 +3,11 @@ version: "3"
 tasks:
   inject-secrets:
     cmds:
-      - '{{ if .CI | eq "true" | not}}op inject -i karakeep.env.tpl -o karakeep.env{{end}}'
+      - '{{ if .CI | eq "true" | not}}op inject -i karakeep/karakeep.env.tpl -o karakeep.env{{end}}'
       - '{{ if .CI | eq "true" | not}}op inject -i caddy.env.tpl -o caddy.env{{end}}'
-      - '{{ if .CI | eq "true"}}sed "s#NEXTAUTH_SECRET=\".*\"#NEXTAUTH_SECRET=\"$NEXTAUTH_SECRET\"#" karakeep.env.tpl > karakeep.env{{end}}'
-      - '{{ if .CI | eq "true"}}sed "s#MEILI_MASTER_KEY=\".*\"#MEILI_MASTER_KEY=\"$MEILI_MASTER_KEY\"#" karakeep.env.tpl > karakeep.env{{end}}'
-      - '{{ if .CI | eq "true"}}sed "s#OPENAI_API_KEY=\".*\"#OPENAI_API_KEY=\"$OPENAI_API_KEY\"#" karakeep.env.tpl > karakeep.env{{end}}'
+      - '{{ if .CI | eq "true"}}sed "s#NEXTAUTH_SECRET=\".*\"#NEXTAUTH_SECRET=\"$NEXTAUTH_SECRET\"#" karakeep/karakeep.env.tpl > karakeep.env{{end}}'
+      - '{{ if .CI | eq "true"}}sed "s#MEILI_MASTER_KEY=\".*\"#MEILI_MASTER_KEY=\"$MEILI_MASTER_KEY\"#" karakeep/karakeep.env.tpl > karakeep.env{{end}}'
+      - '{{ if .CI | eq "true"}}sed "s#OPENAI_API_KEY=\".*\"#OPENAI_API_KEY=\"$OPENAI_API_KEY\"#" karakeep/karakeep.env.tpl > karakeep.env{{end}}'
       - '{{ if .CI | eq "true"}}sed "s#NAMECHEAP_API_KEY=\".*\"#NAMECHEAP_API_KEY=\"$NAMECHEAP_API_KEY\"#" caddy.env.tpl > caddy.env{{end}}'
       - '{{ if .CI | eq "true"}}sed "s#NAMECHEAP_API_USER=\".*\"#NAMECHEAP_API_USER=\"$NAMECHEAP_API_USER\"#" caddy.env.tpl > caddy.env{{end}}'
   cleanup-secrets:
