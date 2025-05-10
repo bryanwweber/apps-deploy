@@ -123,7 +123,7 @@
         dest: "{{ item.dest }}"
         mode: "0644"
       loop:
-        - src: docker-compose.yml
+        - src: karakeep/docker-compose.yml
           dest: "/karakeep/"
         - src: karakeep.env
           dest: "/karakeep/.env"
