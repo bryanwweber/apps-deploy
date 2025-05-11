@@ -135,6 +135,32 @@
         pull: always
         state: present
 
+- name: Install Calibre via Docker compose
+  hosts: myhosts
+  tags: calibre
+  tasks:
+    - name: Create the config directory
+      ansible.builtin.file:
+        path: "/calibre/"
+        state: directory
+        mode: "0755"
+
+    - name: Copy the docker configuration
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: "0644"
+      loop:
+        - src: calibre/docker-compose.yml
+          dest: "/calibre/"
+
+    - name: Boot the compose
+      become: true
+      community.docker.docker_compose_v2:
+        project_src: /calibre/
+        pull: always
+        state: present
+
 - name: Install caddy
   hosts: myhosts
   become: true
@@ -192,4 +218,9 @@
         karakeep.bryanwweber.com {
         	import ts_host
         	reverse_proxy localhost:3000
+        }
+
+        calibre.bryanwweber.com {
+        	import ts_host
+        	reverse_proxy localhost:8080
         }

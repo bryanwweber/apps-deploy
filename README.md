@@ -57,3 +57,7 @@ net.core.wmem_max=7500000
 ```
 
 Then run `sysctl -p /etc/sysctl.d/10-udp-socket-buffers.conf`.
+
+## Original blog post
+
+This is the original post I followed for this setup: https://garrido.io/notes/tailscale-nextdns-custom-domains/
