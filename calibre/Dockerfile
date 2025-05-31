@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1
-
 FROM curlimages/curl-base:latest AS base
 ARG CALIBRE_VERSION=8.4.0
 
@@ -12,8 +11,8 @@ RUN curl -fsSL -o /tmp/calibre-tarball.txz https://download.calibre-ebook.com/${
 
 FROM ubuntu:noble-20250415.1 AS final
 
+ENV XDG_RUNTIME_DIR=/tmp/runtime-root
 COPY --from=base /opt/calibre /opt/calibre
-COPY start-calibre-server.sh .
 
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
@@ -42,13 +41,11 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     tini \
     && /opt/calibre/calibre_postinstall \
     && mkdir /library \
-    && touch /library/metadata.db
-
-RUN useradd --system --shell /bin/bash calibre \
+    && useradd --system --create-home --shell /bin/bash calibre \
     && chown -R calibre:calibre /opt/calibre \
     && chown -R calibre:calibre /library
 USER calibre
 
 EXPOSE 8080
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
-CMD [ "/start-calibre-server.sh" ]
+CMD [ "/usr/bin/calibre-server", "--disable-use-bonjour", "--enable-local-write", "--listen-on", "0.0.0.0", "--auth-mode=basic", "/library" ]
