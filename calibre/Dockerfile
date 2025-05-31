@@ -44,7 +44,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     && mkdir /library \
     && touch /library/metadata.db
 
-RUN useradd --system --no-create-home --shell /bin/bash calibre \
+RUN useradd --system --shell /bin/bash calibre \
     && chown -R calibre:calibre /opt/calibre \
     && chown -R calibre:calibre /library
 USER calibre
