@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 FROM curlimages/curl-base:latest AS base
-ARG CALIBRE_VERSION=8.4.0
+ARG CALIBRE_VERSION=8.5.0
 
 RUN apk add --no-cache xz tar
 
@@ -43,7 +43,10 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     && mkdir /library \
     && useradd --system --create-home --shell /bin/bash calibre \
     && chown -R calibre:calibre /opt/calibre \
-    && chown -R calibre:calibre /library
+    && chown -R calibre:calibre /library \
+    && touch /var/log/calibre.log \
+    && chown calibre:calibre /var/log/calibre.log
+
 USER calibre
 
 EXPOSE 8080
