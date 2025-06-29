@@ -48,4 +48,4 @@ USER calibre
 
 EXPOSE 8080
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
-CMD [ "/usr/bin/calibre-server", "--disable-use-bonjour", "--enable-local-write", "--listen-on", "0.0.0.0", "--auth-mode=basic", "/library" ]
+CMD [ "/usr/bin/calibre-server", "--access-log=/var/log/calibre.log", "--disable-use-bonjour", "--trusted-ips=0.0.0.0", "--enable-local-write", "--listen-on", "0.0.0.0", "--auth-mode=basic", "--url-prefix", "/calibre", "/library" ]

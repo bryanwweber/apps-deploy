@@ -5,24 +5,27 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/build-calibre.yaml'
-      - 'calibre/Dockerfile'
-      - 'calibre/start-calibre-server.sh'
+      - ".github/workflows/build-calibre.yaml"
+      - "calibre/Dockerfile"
   pull_request:
     branches:
       - main
     paths:
-      - '.github/workflows/build-calibre.yaml'
-      - 'calibre/Dockerfile'
-      - 'calibre/start-calibre-server.sh'
+      - ".github/workflows/build-calibre.yaml"
+      - "calibre/Dockerfile"
   workflow_dispatch:
+    inputs:
+      CALIBRE_VERSION:
+        description: "Calibre version to build"
+        required: false
+        default: "8.5.0"
 
 concurrency:
-  group: 'calibre'
+  group: "calibre"
   cancel-in-progress: true
 
 env:
-  CALIBRE_VERSION: "8.4.0"
+  CALIBRE_VERSION: ${{ github.event.inputs.CALIBRE_VERSION || '8.5.0' }}
   REGISTRY: ghcr.io
   IMAGE_NAME: bryanwweber/calibre
 
