@@ -1,11 +1,13 @@
 services:
   calibre:
     image: ghcr.io/bryanwweber/calibre:${CALIBRE_VERSION:-8.5.0}
+    env_file:
+      - .env
     restart: unless-stopped
     volumes:
-      - library:/library
+      - ${CALIBRE_LIBRARY}:/library
     ports:
       - 8080:8080
 
-volumes:
-  library:
+# volumes:
+#   library:
