@@ -1,7 +1,26 @@
 {
-    "ansible.python.interpreterPath": "/var/home/bweber/GitHub/apps-deploy/.venv/bin/python",
     "cSpell.words": [
+        "bryanwweber",
+        "cooldown",
         "KARAKEEP",
+        "NAMECHEAP",
         "Tailnet"
-    ]
+    ],
+    "ansible.python.interpreterPath": "/var/home/bweber/GitHub/apps-deploy/.venv/bin/python",
+    "[yaml][github-actions-workflow]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+    },
+    "[caddyfile]": {
+        "editor.insertSpaces": false,
+        "editor.detectIndentation": false,
+        "editor.tabSize": 4,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "matthewpi.caddyfile-support",
+    },
+    "[dockerbake]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.formatOnSave": true,
+    }
 }
