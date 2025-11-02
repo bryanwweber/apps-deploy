@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
+ARG UBUNTU_VERSION=noble-20251001
+
 FROM curlimages/curl-base:latest AS base
-ARG CALIBRE_VERSION=8.5.0
+ARG CALIBRE_VERSION=8.13.0
 
 RUN apk add --no-cache xz tar
 
@@ -9,7 +11,7 @@ RUN curl -fsSL -o /tmp/calibre-tarball.txz https://download.calibre-ebook.com/${
     && tar -xJvf /tmp/calibre-tarball.txz -C /opt/calibre \
     && rm /tmp/calibre-tarball.txz
 
-FROM ubuntu:noble-20250415.1 AS final
+FROM ubuntu:${UBUNTU_VERSION} AS final
 
 ENV XDG_RUNTIME_DIR=/tmp/runtime-root
 COPY --from=base /opt/calibre /opt/calibre
@@ -40,14 +42,11 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     poppler-utils \
     tini \
     && /opt/calibre/calibre_postinstall \
-    && mkdir /library \
-    && useradd --system --create-home --shell /bin/bash calibre \
-    && chown -R calibre:calibre /opt/calibre \
-    && chown -R calibre:calibre /library \
+    && chown -R ubuntu:ubuntu /opt/calibre \
     && touch /var/log/calibre.log \
-    && chown calibre:calibre /var/log/calibre.log
+    && chown ubuntu:ubuntu /var/log/calibre.log
 
-USER calibre
+USER ubuntu
 
 EXPOSE 8080
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
