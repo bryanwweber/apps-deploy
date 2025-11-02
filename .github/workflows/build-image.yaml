@@ -1,0 +1,180 @@
+name: Build and Push Images
+
+on:
+  workflow_call:
+    inputs:
+      registry:
+        required: true
+        type: string
+      image_name:
+        required: true
+        type: string
+      target:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.generate.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Create .env files
+        run: |
+          touch calibre/.env
+          echo "CALIBRE_LIBRARY=/library" >> calibre/.env
+          touch caddy/.env
+          touch karakeep/.env
+      - name: Generate build matrix
+        id: generate
+        uses: docker/bake-action/subaction/matrix@3acf805d94d93a86cce4ca44798a76464a75b88c # v6.9.0
+        with:
+          target: ${{ inputs.target }}
+          fields: platforms
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
+        with:
+          images: ${{ inputs.registry }}/${{ inputs.image_name }}
+          tags: |
+            # set latest tag for default branch
+            type=raw,value=latest,enable={{is_default_branch}},priority=700
+            type=ref,event=pr,prefix=pr-,enable=true,priority=600
+            type=raw,value=${{ inputs.version }},enable={{is_default_branch}},priority=800
+      - name: Rename docker meta bake file
+        run: |
+          mv "${{ steps.meta.outputs.bake-file }}" "${{ runner.temp }}/bake-meta.json"
+      - name: Upload meta bake definition
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: bake-meta
+          path: ${{ runner.temp }}/bake-meta.json
+          if-no-files-found: error
+          retention-days: 1
+
+  build-image:
+    runs-on: ${{ startsWith(matrix.platforms, 'linux/arm') && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    needs:
+      - prepare
+    permissions:
+      packages: write
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Cache
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: cache-mount
+          key: cache-mount-${{ hashFiles(format('{0}/Dockerfile', matrix.target)) }}-${{ matrix.platforms }}
+
+      - name: Download meta bake definition
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: bake-meta
+          path: ${{ runner.temp }}
+      - name: Log in to the Container registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        id: setup-buildx
+      - name: Restore Docker cache mounts
+        if: github.event_name == 'pull_request'
+        uses: reproducible-containers/buildkit-cache-dance@5b81f4d29dc8397a7d341dba3aeecc7ec54d6361 # v3.3.0
+        with:
+          builder: ${{ steps.setup-buildx.outputs.name }}
+          cache-dir: cache-mount
+          dockerfile: ${{ format('{0}/Dockerfile', matrix.target) }}
+          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
+      - name: Build and push image
+        id: bake
+        uses: docker/bake-action@3acf805d94d93a86cce4ca44798a76464a75b88c # v6.9.0
+        with:
+          targets: ${{ matrix.target }}
+          files: |
+            ./docker-bake.hcl
+            cwd://${{ runner.temp }}/bake-meta.json
+          set: |
+            *.tags=${{ inputs.registry }}/${{ inputs.image_name }}
+            *.platform=${{ matrix.platforms }}
+            *.output=type=image,push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' && 'true' || 'false' }}
+            ${{ github.event_name == 'pull_request' && format('*.cache-from=type=gha,scope={0}-{1}', matrix.target, matrix.platforms) || '' }}
+            ${{ github.event_name == 'pull_request' && format('*.cache-to=type=gha,mode=max,scope={0}-{1}', matrix.target, matrix.platforms) || '' }}
+      - name: Export digest
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest=$(jq -cr ".${TARGET}."containerimage.digest"" <<< "${BUILD_METADATA}")
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+        env:
+          BUILD_METADATA: ${{ steps.bake.outputs.metadata }}
+          TARGET: ${{ matrix.target }}
+      - name: Set platform pair
+        id: set-platform-pair
+        run: |
+          echo "platform-pair=${PLATFORM//\//-}" >> $GITHUB_OUTPUT
+        env:
+          PLATFORM: ${{ matrix.platforms }}
+      - name: Upload digest
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: digests-${{ steps.set-platform-pair.outputs.platform-pair }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    permissions:
+      attestations: write
+      packages: write
+    needs:
+      - build-image
+    steps:
+      - name: Download meta bake definition
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: bake-meta
+          path: ${{ runner.temp }}
+      - name: Download digests
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+      - name: Log in to the Container registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("${{ inputs.registry }}/${{ inputs.image_name }}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json) \
+            $(printf '${{ inputs.registry }}/${{ inputs.image_name }}@sha256:%s ' *)
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ inputs.registry }}/${{ inputs.image_name }}:$(jq -r '.target."docker-metadata-action".args.DOCKER_META_VERSION' ${{ runner.temp }}/bake-meta.json)
