@@ -1,0 +1,15 @@
+# VCS
+.git
+.gitignore
+.jj
+
+# GitHub
+.github
+
+# Mise
+.mise.toml
+.mise.lock
+
+# Docker
+docker-compose.yml
+Dockerfile
