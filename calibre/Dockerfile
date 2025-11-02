@@ -3,13 +3,17 @@ ARG UBUNTU_VERSION=noble-20251001
 
 FROM curlimages/curl-base:latest AS base
 ARG CALIBRE_VERSION=8.13.0
+ARG TARGETARCH
 
 RUN apk add --no-cache xz tar
 
-RUN curl -fsSL -o /tmp/calibre-tarball.txz https://download.calibre-ebook.com/${CALIBRE_VERSION}/calibre-${CALIBRE_VERSION}-x86_64.txz \
+RUN --mount=type=cache,target=/tmp/cache \
+    if [[ "${TARGETARCH}" == "amd64" ]]; then export CALIBRE_ARCH="x86_64"; \
+    elif [[ "${TARGETARCH}" == "arm64" ]]; then export CALIBRE_ARCH="arm64"; \
+    else echo "Unsupported architecture: ${TARGETARCH}" >&2; exit 1; fi; \
+    curl -fsSL -o /tmp/cache/calibre-tarball.txz https://download.calibre-ebook.com/${CALIBRE_VERSION}/calibre-${CALIBRE_VERSION}-${CALIBRE_ARCH}.txz \
     && mkdir -p /opt/calibre \
-    && tar -xJvf /tmp/calibre-tarball.txz -C /opt/calibre \
-    && rm /tmp/calibre-tarball.txz
+    && tar -xJvf /tmp/cache/calibre-tarball.txz -C /opt/calibre
 
 FROM ubuntu:${UBUNTU_VERSION} AS final
 
