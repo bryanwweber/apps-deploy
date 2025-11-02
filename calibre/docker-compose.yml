@@ -1,6 +1,6 @@
 services:
   calibre:
-    image: ghcr.io/bryanwweber/calibre:${CALIBRE_VERSION:-8.5.0}
+    image: "ghcr.io/bryanwweber/calibre:latest"
     env_file:
       - .env
     restart: unless-stopped
