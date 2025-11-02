@@ -1,0 +1,46 @@
+{
+	debug
+	log {
+		output file /var/log/caddy/access.log
+	}
+	email bryan@bryanwweber.com
+}
+
+(ts_host) {
+	bind {env.TAILNET_IP}
+
+	@blocked not remote_ip 100.64.0.0/10
+
+	tls {
+		resolvers 1.1.1.1
+		dns namecheap {
+			api_key {env.NAMECHEAP_API_KEY}
+			user {env.NAMECHEAP_API_USER}
+			# api_endpoint https://api.sandbox.namecheap.com/xml.response
+			api_endpoint https://api.namecheap.com/xml.response
+			client_ip {env.PUBLIC_CLIENT_IP}
+		}
+	}
+
+	respond @blocked "Unauthorized" 403
+}
+
+karakeep.bryanwweber.com {
+	import ts_host
+	reverse_proxy localhost:3000
+}
+
+calibre.bryanwweber.com {
+	import ts_host
+	reverse_proxy localhost:8080
+}
+
+kosyncserver.bryanwweber.com {
+	import ts_host
+	reverse_proxy localhost:8000
+}
+
+atuin.bryanwweber.com {
+	import ts_host
+	reverse_proxy localhost:8888
+}

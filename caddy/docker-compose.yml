@@ -1,0 +1,20 @@
+services:
+  caddy:
+    image: "ghcr.io/bryanwweber/caddy:latest"
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./conf:/etc/caddy
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
