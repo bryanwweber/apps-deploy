@@ -2,7 +2,11 @@
 bun = "latest"
 node = "22"
 "npm:@hoarderapp/cli" = "latest"
-"pipx:zizmor" = "latest"
 python = "3.13"
 task = "latest"
 uv = "latest"
+zizmor = "latest"
+
+[settings]
+experimental = true
+lockfile = true
