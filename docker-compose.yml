@@ -1,0 +1,6 @@
+include:
+  - atuin/docker-compose.yml
+  - caddy/docker-compose.yml
+  - calibre/docker-compose.yml
+  - karakeep/docker-compose.yml
+  - kosyncserver/docker-compose.yml
