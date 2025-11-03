@@ -1,0 +1,52 @@
+name: Build and publish Caddy image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/build-caddy.yaml"
+      - "caddy/Dockerfile"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/build-caddy.yaml"
+      - "caddy/Dockerfile"
+
+permissions: {}
+
+concurrency:
+  group: "caddy"
+  cancel-in-progress: true
+
+jobs:
+  get-versions:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      - name: Get latest caddy version
+        id: get-version
+        run: |
+          echo "version=$(docker buildx bake --file docker-bake.hcl caddy --print | jq -r '.target.caddy.args.CADDY_VERSION')" >> $GITHUB_OUTPUT
+
+  build-caddy:
+    permissions:
+      packages: write
+      attestations: write
+    uses: ./.github/workflows/build-image.yaml
+    secrets: inherit
+    needs:
+      - get-versions
+    with:
+      target: caddy
+      registry: ghcr.io
+      image_name: bryanwweber/caddy
+      version: ${{ needs.get-versions.outputs.version }}
