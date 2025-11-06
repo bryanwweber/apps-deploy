@@ -15,6 +15,9 @@ on:
       version:
         required: true
         type: string
+    secrets:
+      github-token:
+        required: true
 
 jobs:
   prepare:
@@ -50,7 +53,9 @@ jobs:
             type=raw,value=${{ inputs.version }},enable={{is_default_branch}},priority=800
       - name: Rename docker meta bake file
         run: |
-          mv "${{ steps.meta.outputs.bake-file }}" "${{ runner.temp }}/bake-meta.json"
+          mv "${BAKE_FILE}" "${{ runner.temp }}/bake-meta.json"
+        env:
+          BAKE_FILE: ${{ steps.meta.outputs.bake-file }}
       - name: Upload meta bake definition
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
@@ -150,6 +155,9 @@ jobs:
       packages: write
     needs:
       - build-image
+    env:
+      REGISTRY: ${REGISTRY}
+      IMAGE_NAME: ${IMAGE_NAME}
     steps:
       - name: Download meta bake definition
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
@@ -173,8 +181,8 @@ jobs:
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("${{ inputs.registry }}/${{ inputs.image_name }}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json) \
-            $(printf '${{ inputs.registry }}/${{ inputs.image_name }}@sha256:%s ' *)
+          docker buildx imagetools create $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("${REGISTRY}/${IMAGE_NAME}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json) \
+            $(printf '${REGISTRY}/${IMAGE_NAME}@sha256:%s ' *)
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ inputs.registry }}/${{ inputs.image_name }}:$(jq -r '.target."docker-metadata-action".args.DOCKER_META_VERSION' ${{ runner.temp }}/bake-meta.json)
+          docker buildx imagetools inspect ${REGISTRY}/${IMAGE_NAME}:$(jq -r '.target."docker-metadata-action".args.DOCKER_META_VERSION' ${{ runner.temp }}/bake-meta.json)
