@@ -42,7 +42,8 @@ jobs:
       packages: write
       attestations: write
     uses: ./.github/workflows/build-image.yaml
-    secrets: inherit
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
     needs:
       - get-versions
     with:

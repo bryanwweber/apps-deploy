@@ -3,42 +3,28 @@ name: Deploy Apps using Ansible
 on:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   deploy:
     name: Deploy via Tailscale
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
       - name: Set up ssh dir
         run: |
           mkdir -p ~/.ssh/
-          echo "${{ vars.HOARDER_KNOWN_HOST }}" >> ~/.ssh/known_hosts
+          echo "${HOARDER_KNOWN_HOST}" >> ~/.ssh/known_hosts
           chmod 0600 ~/.ssh/known_hosts
         shell: bash
+        env:
+          HOARDER_KNOWN_HOST: ${{ vars.HOARDER_KNOWN_HOST }}`
       - name: Tailscale
-        uses: tailscale/github-action@v2
+        uses: tailscale/github-action@a392da0a182bba0e9613b6243ebd69529b1878aa # v4.1.0
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:gha
-      - name: Set up taskfile
-        uses: jdx/mise-action@v2
-        with:
-          install: true
-          cache: true
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          version: "latest"
-          enable-cache: true
-      - name: Deploy the stack
-        run: |
-          task install-ansible-deps
-          task run-playbook
-        env:
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          MEILI_MASTER_KEY: ${{ secrets.MEILI_MASTER_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          NAMECHEAP_API_KEY: ${{ secrets.NAMECHEAP_API_KEY }}
-          NAMECHEAP_API_USER: ${{ secrets.NAMECHEAP_API_USER }}
