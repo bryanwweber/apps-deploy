@@ -127,7 +127,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           mkdir -p ${{ runner.temp }}/digests
-          digest=$(jq -cr ".${TARGET}."containerimage.digest"" <<< "${BUILD_METADATA}")
+          digest=$(jq -cr ".${TARGET}.\"containerimage.digest\"" <<< "${BUILD_METADATA}")
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
         env:
           BUILD_METADATA: ${{ steps.bake.outputs.metadata }}
@@ -187,7 +187,6 @@ jobs:
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          ls -lAh
           docker buildx imagetools create $TAGS $(printf "${REGISTRY}/${IMAGE_NAME}@sha256:%s " *)
       - name: Inspect image
         run: |
