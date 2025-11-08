@@ -156,8 +156,8 @@ jobs:
     needs:
       - build-image
     env:
-      REGISTRY: ${REGISTRY}
-      IMAGE_NAME: ${IMAGE_NAME}
+      REGISTRY: ${{ inputs.registry }}
+      IMAGE_NAME: ${{ inputs.image_name }}
     steps:
       - name: Download meta bake definition
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
