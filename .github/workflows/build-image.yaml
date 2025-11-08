@@ -187,7 +187,7 @@ jobs:
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create $TAGS $(printf '${REGISTRY}/${IMAGE_NAME}@sha256:%s ' *)
+          docker buildx imagetools create $TAGS $(printf "${REGISTRY}/${IMAGE_NAME}@sha256:%s " *)
       - name: Inspect image
         run: |
           docker buildx imagetools inspect ${REGISTRY}/${IMAGE_NAME}:${DOCKER_META_VERSION}
