@@ -6,13 +6,16 @@ on:
       - main
     paths:
       - ".github/workflows/build-calibre.yaml"
+      - ".github/workflows/build-image.yaml"
       - "calibre/Dockerfile"
   pull_request:
     branches:
       - main
     paths:
       - ".github/workflows/build-calibre.yaml"
+      - ".github/workflows/build-image.yaml"
       - "calibre/Dockerfile"
+  workflow_dispatch:
 
 permissions: {}
 
