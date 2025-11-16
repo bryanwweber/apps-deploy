@@ -1,15 +1,29 @@
 services:
-  caddy:
-    image: "ghcr.io/bryanwweber/caddy:latest"
+  ts-caddy:
+    image: ghcr.io/tailscale/tailscale:${TAILSCALE_VERSION}
+    hostname: caddy
+    env_file:
+      - .env
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
+      - TS_EXTRA_ARGS=--advertise-tags=tag:caddy
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - tailscale-data-caddy:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
     cap_add:
-      - NET_ADMIN
+      - net_admin
+      - sys_module
+    restart: unless-stopped
+  caddy:
+    image: ghcr.io/bryanwweber/caddy:${CADDY_VERSION}
     restart: unless-stopped
     env_file:
       - .env
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+    network_mode: service:ts-caddy
+    depends_on:
+      - ts-caddy
     volumes:
       - ./conf:/etc/caddy
       - caddy_data:/data
@@ -17,4 +31,8 @@ services:
 
 volumes:
   caddy_data:
+    name: caddy_data
   caddy_config:
+    name: caddy_config
+  tailscale-data-caddy:
+    name: tailscale-data-caddy

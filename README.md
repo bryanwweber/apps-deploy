@@ -1,63 +1,116 @@
-# Deploy Apps on Tailnet with Ansible
+# Deploy personal apps to virtual (Hetzner) hosts
 
-Generate secrets locally:
+This repo has several apps configured with docker-compose for personal use. It relies on the following tools to manage deployment:
 
-```bash
-task generate-secrets
-```
+1. Docker compose + buildx
+2. Tailscale
+3. GitHub Actions
 
-Deploy the app for updates:
+Additionally, zizmor is used to monitor the workflows for security.
 
-```bash
-uv run ansible-playbook playbook.yaml --tags karakeep
-```
+## Updating an application version
 
-## Update ansible dependencies
+For caddy and calibre, edit the version in `docker-bake.hcl`. For the other applications, edit the `versions.sh`. When the commit is pushed to `main`, GitHub Actions will automatically update the containers on the host.
 
-```bash
-uv run ansible-galaxy install -r requirements.yml --force
-```
+## Setting up a new host
 
-## Rebuilding Caddy
+1. After creating the host, log in with `ssh` to the root account, update the operating system, restart and SSH back as the root:
 
-As of 26-APR-2025, the `caddy-dns/namecheap` extension does not support Caddy >=2.10 due to a change in the libdns used by Caddy. This is causing the ansible playbook to fail. To rebuild Caddy on the server:
+   ```bash
+   ssh root@<ip address>
+   ```
 
-```bash
-ssh root@karakeep.forest-catfish.ts.net
-```
+1. Install Docker and Tailscale (the latter for SSH access after setup)
+   1. <https://docs.docker.com/engine/install>
+   1. <https://tailscale.com/kb/1031/install-linux>
+1. Create a system user to run Docker compose and a regular user for SSH login:
 
-Then on the remote:
+   ```bash
+   # The group number is for the docker group created by the Docker installer
+   getent group
+   useradd --create-home --system --gid 988 apps-deploy
+   adduser bweber
+   usermod -aG sudo bweber # For Ubuntu. I think the group is wheel on Fedora
+   ```
 
-```bash
-cd /caddy
-xcaddy --with "github.com/caddy-dns/namecheap" v2.9.1
-mv ./caddy /usr/local/bin/caddy
-systemctl restart caddy.service
-```
+1. Clone the repo as the `apps-deploy` user:
 
-If the machine has rebooted, the UDP memory size needs to be configured according to the [quic-go wiki](https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes):
+   ```bash
+   su - apps-deploy
+   git clone https://github.com/bryanwweber/apps-deploy
+   ```
 
-```bash
-sysctl -w net.core.rmem_max=7500000
-sysctl -w net.core.wmem_max=7500000
-```
+1. Copy the Calibre library from the laptop to the remote, somehow, probably rsync
+1. Set up credentials for the applications. These need to go in `.env` files in each of the sub-folders of the repo
+   1. Atuin
 
-Then reset and restart the Caddy service:
+      ```shell
+      ATUIN_DB_NAME=atuin
+      ATUIN_DB_USERNAME=atuin
+      # Choose your own secure password. Stick to [A-Za-z0-9.~_-]
+      ATUIN_DB_PASSWORD=
+      TS_AUTHKEY=
+      ```
 
-```bash
-systemctl reset-failed caddy.service
-systemctl restart caddy.service
-```
+   1. Caddy
 
-[This post](https://code.google.com/archive/p/u1o9/wikis/Tuning.wiki) says to edit `/etc/sysctl.conf` to include these values so they survive reboot, but I didn't try that yet. [This page](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/10-beta/html/network_troubleshooting_and_performance_tuning/tuning-udp-connections#increasing-the-system-wide-udp-socket-buffers) in the Red Hat docs suggests something similar. In a file called `/etc/sysctl.d/10-udp-socket-buffers.conf`, set
+      ```shell
+      PUBLIC_CLIENT_IP=
 
-```
-net.core.rmem_max=7500000
-net.core.wmem_max=7500000
-```
+      NAMECHEAP_API_KEY=
+      NAMECHEAP_API_USER=
+      TS_AUTHKEY=
+      ```
 
-Then run `sysctl -p /etc/sysctl.d/10-udp-socket-buffers.conf`.
+   1. Calibre
 
-## Original blog post
+      ```shell
+      CALIBRE_LIBRARY="/root/Calibre Library"
+      TS_AUTHKEY=
+      ```
 
-This is the original post I followed for this setup: https://garrido.io/notes/tailscale-nextdns-custom-domains/
+   1. Karakeep
+
+      ```shell
+      NEXTAUTH_URL="http://localhost:3000"
+
+      DISABLE_SIGNUPS=true
+      CRAWLER_FULL_PAGE_ARCHIVE=true
+
+      NEXTAUTH_SECRET=
+      MEILI_MASTER_KEY=
+      OPENAI_API_KEY=
+      TS_AUTHKEY=
+      ```
+
+   1. kosyncserver
+
+       ```shell
+       TS_AUTHKEY=
+       ```
+
+1. Create the external volumes for the services
+
+   ```bash
+   docker volume create atuin_postgres \
+   && docker volume create karakeep_meilisearch \
+   && docker volume create karakeep_data \
+   && docker volume create kosyncserver_data
+   ```
+
+1. Create the `systemd` service with the script in the repo. This will also start the services, so monitor for startup.
+
+   ```bash
+   su - apps-deploy
+   cd apps-deploy
+   ./compose-service.sh
+   systemctl status apps-deploy
+   ```
+
+1. Disable SSH for the root user. Make sure that the `bweber` user has `sudo` permissions
+
+   ```bash
+   echo "PermitRootLogin no" >> /etc/ssh/sshd_config
+   echo "AllowedUsers apps-deploy bweber" >> /etc/ssh/sshd_config
+   systemctl ssh restart
+   ```

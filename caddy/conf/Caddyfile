@@ -6,11 +6,7 @@
 	email bryan@bryanwweber.com
 }
 
-(ts_host) {
-	bind {env.TAILNET_IP}
-
-	@blocked not remote_ip 100.64.0.0/10
-
+*.apps.bryanwweber.com {
 	tls {
 		resolvers 1.1.1.1
 		dns namecheap {
@@ -21,26 +17,23 @@
 			client_ip {env.PUBLIC_CLIENT_IP}
 		}
 	}
+	@calibre host calibre.apps.bryanwweber.com
+	@karakeep host karakeep.apps.bryanwweber.com
+	@kosyncserver host kosyncserver.apps.bryanwweber.com
+	@atuin host atuin.apps.bryanwweber.com
 
-	respond @blocked "Unauthorized" 403
-}
-
-karakeep.bryanwweber.com {
-	import ts_host
-	reverse_proxy localhost:3000
-}
-
-calibre.bryanwweber.com {
-	import ts_host
-	reverse_proxy localhost:8080
-}
-
-kosyncserver.bryanwweber.com {
-	import ts_host
-	reverse_proxy localhost:8000
-}
-
-atuin.bryanwweber.com {
-	import ts_host
-	reverse_proxy localhost:8888
+	# These proxies point to hosts on the tailnet. Make sure that the hostname of the
+	# tailscale service in each container matches the name used in the reverse proxy.
+	handle @calibre {
+		reverse_proxy http://calibre:8080
+	}
+	handle @karakeep {
+		reverse_proxy http://karakeep:3000
+	}
+	handle @kosyncserver {
+		reverse_proxy http://kosyncserver:8000
+	}
+	handle @atuin {
+		reverse_proxy http://atuin:8888
+	}
 }
