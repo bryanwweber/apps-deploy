@@ -9,7 +9,7 @@ variable "CADDY_VERSION" {
 }
 
 variable "CALIBRE_VERSION" {
-  default = "8.13.0"
+  default = "8.15.0"
 }
 
 variable "UBUNTU_VERSION" {
