@@ -1,6 +1,0 @@
-myhosts:
-  hosts:
-    karakeep:
-      ansible_host: "karakeep.forest-catfish.ts.net"
-      ansible_user: ansible
-      ansible_python_interpreter: auto_silent

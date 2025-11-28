@@ -1,6 +1,0 @@
-roles:
-  - name: caddy_ansible.caddy_ansible
-    src: https://github.com/caddy-ansible/caddy-ansible/archive/master.tar.gz
-
-collections:
-  - name: community.docker
