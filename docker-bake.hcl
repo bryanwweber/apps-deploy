@@ -44,7 +44,7 @@ target "calibre" {
     "CALIBRE_VERSION" = "${CALIBRE_VERSION}"
     "UBUNTU_VERSION" = "${UBUNTU_VERSION}"
   }
-  tags = [ "ghcr.io/bryanwweber/calibre:${CALIBRE_VERSION}-1", "ghcr.io/bryanwweber/calibre:latest" ]
+  tags = [ "ghcr.io/bryanwweber/calibre:${CALIBRE_VERSION}-${UBUNTU_VERSION}", "ghcr.io/bryanwweber/calibre:latest" ]
   platforms = [ "linux/amd64", "linux/arm64" ]
   labels = {
     "org.opencontainers.image.description" = "This image runs a Calibre server for managing eBooks."
