@@ -8,6 +8,7 @@ on:
       - ".github/workflows/build-calibre.yaml"
       - ".github/workflows/build-image.yaml"
       - "calibre/Dockerfile"
+      - "docker-bake.hcl"
   pull_request:
     branches:
       - main
@@ -15,6 +16,7 @@ on:
       - ".github/workflows/build-calibre.yaml"
       - ".github/workflows/build-image.yaml"
       - "calibre/Dockerfile"
+      - "docker-bake.hcl"
   workflow_dispatch:
 
 permissions: {}
@@ -28,6 +30,9 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.get-version.outputs.version }}
+      tags: ${{ steps.get-tags.outputs.tags }}
+    permissions:
+      packages: read
     steps:
       - name: Checkout the repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -39,8 +44,15 @@ jobs:
         id: get-version
         run: |
           echo "version=$(docker buildx bake --file docker-bake.hcl calibre --print | jq -r '.target.calibre.args | .CALIBRE_VERSION + "-" + .UBUNTU_VERSION')" >> $GITHUB_OUTPUT
+      - name: Get latest published calibre tag
+        id: get-tags
+        run: |
+          echo "tags=$(gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /user/packages/container/calibre/versions | jq -cr 'sort_by(-.id)[0].metadata.container.tags' || echo '[]')" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   build-calibre:
+    if: ${{ !contains(fromJson(needs.get-versions.outputs.tags), needs.get-versions.outputs.version) || github.event_name == 'workflow_dispatch' }}
     permissions:
       packages: write
       attestations: write
