@@ -16,7 +16,7 @@ services:
       - net_admin
       - sys_module
     healthcheck:
-      test: ["CMD_SHELL", "tailscale status"]
+      test: ["CMD-SHELL", "tailscale status"]
       interval: 1s
       timeout: 5s
       retries: 60
