@@ -20,10 +20,6 @@ jobs:
       # Needed for the OIDC token used by the Tailscale action
       id-token: write
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-        with:
-          persist-credentials: false
       - name: Set up ssh dir
         run: |
           mkdir -p ~/.ssh/
