@@ -33,6 +33,13 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
    usermod -aG sudo bweber # For Ubuntu. I think the group is wheel on Fedora
    ```
 
+1. Update the sudoers file so apps-deploy can start/restart the systemctl service. Run `visudo` and add:
+
+   ```
+   Cmnd_Alias APPS_DEPLOY_CMD = /usr/bin/systemctl start apps-deploy.service, /usr/bin/systemctl restart apps-deploy.service, /usr/bin/systemctl stop apps-deploy.service
+   apps-deploy ALL=(ALL) NOPASSWD: APPS_DEPLOY_CMD
+   ```
+
 1. Clone the repo as the `apps-deploy` user:
 
    ```bash
@@ -98,11 +105,10 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
    && docker volume create kosyncserver_data
    ```
 
-1. Create the `systemd` service with the script in the repo. This will also start the services, so monitor for startup.
+1. Create the `systemd` service with the script in the repo. This needs to run as root. This will also start the services, so monitor for startup.
 
    ```bash
-   su - apps-deploy
-   cd apps-deploy
+   cd /home/apps-deploy/apps-deploy
    ./compose-service.sh
    systemctl status apps-deploy
    ```
