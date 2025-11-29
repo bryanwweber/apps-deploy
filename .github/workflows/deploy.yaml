@@ -1,6 +1,12 @@
-name: Deploy Apps using Ansible
+name: Deploy apps via Tailscale SSH
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "versions.sh"
+  workflow_call:
   workflow_dispatch:
 
 permissions: {}
@@ -9,6 +15,10 @@ jobs:
   deploy:
     name: Deploy via Tailscale
     runs-on: ubuntu-latest
+    environment: deploy
+    permissions:
+      # Needed for the OIDC token used by the Tailscale action
+      id-token: write
     steps:
       - name: Checkout the repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -17,14 +27,21 @@ jobs:
       - name: Set up ssh dir
         run: |
           mkdir -p ~/.ssh/
-          echo "${HOARDER_KNOWN_HOST}" >> ~/.ssh/known_hosts
+          echo "${HETZNER_KNOWN_HOST}" >> ~/.ssh/known_hosts
           chmod 0600 ~/.ssh/known_hosts
-        shell: bash
         env:
-          HOARDER_KNOWN_HOST: ${{ vars.HOARDER_KNOWN_HOST }}`
+          HETZNER_KNOWN_HOST: ${{ secrets.HETZNER_KNOWN_HOST }}
       - name: Tailscale
         uses: tailscale/github-action@a392da0a182bba0e9613b6243ebd69529b1878aa # v4.1.0
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:gha
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:github-actions
+          ping: ${{ vars.HETZNER_HOST }}
+      - name: Pull and restart the containers
+        run: |
+          ssh -o StrictHostKeyChecking=yes ${USER}@${HOST} "cd $REMOTE_ROOT; git pull; ./update-containers.sh"
+        env:
+          USER: apps-deploy
+          HOST: ${{ vars.HETZNER_HOST }}
+          REMOTE_ROOT: /home/apps-deploy/apps-deploy

@@ -1,26 +1,64 @@
 services:
+  ts-atuin:
+    image: ghcr.io/tailscale/tailscale:${TAILSCALE_VERSION}
+    hostname: atuin
+    env_file:
+      - .env
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
+      - TS_EXTRA_ARGS=--advertise-tags=tag:atuin
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - tailscale-data-atuin:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD_SHELL", "tailscale status"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
+    restart: unless-stopped
   atuin:
-    restart: always
-    image: ghcr.io/atuinsh/atuin:${ATUIN_VERSION:-18.8.0}
+    restart: unless-stopped
+    image: ghcr.io/atuinsh/atuin:${ATUIN_VERSION}
     command: server start
-    ports:
-      - 8888:8888
+    network_mode: service:ts-atuin
     environment:
       ATUIN_HOST: "0.0.0.0"
       ATUIN_OPEN_REGISTRATION: "true"
-      ATUIN_DB_URI: postgres://${ATUIN_DB_USERNAME}:${ATUIN_DB_PASSWORD}@db/${ATUIN_DB_NAME}
+      # The localhost here is needed because all the containers are in the ts-atuin namespace
+      ATUIN_DB_URI: postgres://${ATUIN_DB_USERNAME}:${ATUIN_DB_PASSWORD}@localhost/${ATUIN_DB_NAME}
       RUST_LOG: info,atuin_server=debug
     depends_on:
-      - db
-  db:
-    image: postgres:18
+      atuin-db:
+        condition: service_healthy
+      ts-atuin:
+        condition: service_healthy
+  atuin-db:
+    image: postgres:${POSTGRES_VERSION}
     restart: unless-stopped
     volumes: # Don't remove permanent storage for index database files!
-      - "postgres:/var/lib/postgresql/data/"
+      - "atuin-data:/var/lib/postgresql/"
+    network_mode: service:ts-atuin
     environment:
       POSTGRES_USER: ${ATUIN_DB_USERNAME}
       POSTGRES_PASSWORD: ${ATUIN_DB_PASSWORD}
       POSTGRES_DB: ${ATUIN_DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      ts-atuin:
+        condition: service_healthy
 
 volumes:
-  postgres:
+  atuin-data:
+    name: atuin_postgres
+    external: true
+  tailscale-data-atuin:
+    name: tailscale-data-atuin

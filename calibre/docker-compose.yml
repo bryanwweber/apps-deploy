@@ -1,13 +1,38 @@
 services:
+  ts-calibre:
+    image: ghcr.io/tailscale/tailscale:${TAILSCALE_VERSION}
+    hostname: calibre
+    env_file:
+      - .env
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
+      - TS_EXTRA_ARGS=--advertise-tags=tag:calibre
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - tailscale-data-calibre:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD_SHELL", "tailscale status"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
+    restart: unless-stopped
   calibre:
-    image: "ghcr.io/bryanwweber/calibre:latest"
+    image: ghcr.io/bryanwweber/calibre:${CALIBRE_VERSION}-${UBUNTU_VERSION}
     env_file:
       - .env
     restart: unless-stopped
     volumes:
       - ${CALIBRE_LIBRARY}:/library
-    ports:
-      - 8080:8080
+    depends_on:
+      ts-calibre:
+        condition: service_healthy
+    network_mode: service:ts-calibre
 
-# volumes:
-#   library:
+volumes:
+  tailscale-data-calibre:
+    name: tailscale-data-calibre

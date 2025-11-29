@@ -1,11 +1,32 @@
 services:
-  kosyncserver:
-    image: ghcr.io/bryanwweber/kosyncserver:v1.2.1
-    restart: unless-stopped
-    ports:
-      - 8000:8000
+  ts-kosyncserver:
+    image: ghcr.io/tailscale/tailscale:${TAILSCALE_VERSION}
+    hostname: kosyncserver
+    env_file:
+      - .env
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
+      - TS_EXTRA_ARGS=--advertise-tags=tag:kosyncserver
+      - TS_STATE_DIR=/var/lib/tailscale
     volumes:
-      - data:/data
+      - tailscale-data-kosyncserver:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD_SHELL", "tailscale status"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
+    restart: unless-stopped
+  kosyncserver:
+    image: ghcr.io/bryanwweber/kosyncserver:${KOSYNCSERVER_VERSION}
+    restart: unless-stopped
+    network_mode: service:ts-kosyncserver
+    volumes:
+      - kosyncserver-data:/data
     environment:
       ENV: production
       LOG_LEVEL: info
@@ -14,6 +35,13 @@ services:
       LOOP: uvloop
       RELOAD: false
       interface: "asgi"
+    depends_on:
+      ts-kosyncserver:
+        condition: service_healthy
 
 volumes:
-  data:
+  kosyncserver-data:
+    name: kosyncserver_data
+    external: true
+  tailscale-data-kosyncserver:
+    name: tailscale-data-kosyncserver

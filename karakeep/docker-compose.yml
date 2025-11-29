@@ -1,18 +1,47 @@
 services:
-  web:
-    image: ghcr.io/karakeep-app/karakeep:${KARAKEEP_VERSION:-release}
-    restart: unless-stopped
-    volumes:
-      - data:/data
-    ports:
-      - 3000:3000
+  ts-karakeep:
+    image: ghcr.io/tailscale/tailscale:${TAILSCALE_VERSION}
+    hostname: karakeep
     env_file:
       - .env
     environment:
-      MEILI_ADDR: http://meilisearch:7700
-      BROWSER_WEB_URL: http://chrome:9222
+      - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
+      - TS_EXTRA_ARGS=--advertise-tags=tag:karakeep
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - tailscale-data-karakeep:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD_SHELL", "tailscale status"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
+    restart: unless-stopped
+  karakeep:
+    image: ghcr.io/karakeep-app/karakeep:${KARAKEEP_VERSION}
+    restart: unless-stopped
+    volumes:
+      - karakeep-data:/data
+    network_mode: service:ts-karakeep
+    env_file:
+      - .env
+    environment:
+      # These hosts need to be localhost because all the containers are in the ts-karakeep namespace
+      MEILI_ADDR: http://localhost:7700
+      BROWSER_WEB_URL: http://localhost:9222
       # OPENAI_API_KEY: ...
       DATA_DIR: /data
+    depends_on:
+      meilisearch:
+        condition: service_started
+      chrome:
+        condition: service_started
+      ts-karakeep:
+        condition: service_healthy
   chrome:
     image: gcr.io/zenika-hub/alpine-chrome:123
     restart: unless-stopped
@@ -23,8 +52,12 @@ services:
       - --remote-debugging-address=0.0.0.0
       - --remote-debugging-port=9222
       - --hide-scrollbars
+    network_mode: service:ts-karakeep
+    depends_on:
+      ts-karakeep:
+        condition: service_healthy
   meilisearch:
-    image: getmeili/meilisearch:v1.15.1
+    image: getmeili/meilisearch:v1.15.2
     restart: unless-stopped
     env_file:
       - .env
@@ -32,7 +65,17 @@ services:
       MEILI_NO_ANALYTICS: "true"
     volumes:
       - meilisearch:/meili_data
+    network_mode: service:ts-karakeep
+    depends_on:
+      ts-karakeep:
+        condition: service_healthy
 
 volumes:
   meilisearch:
-  data:
+    name: karakeep_meilisearch
+    external: true
+  karakeep-data:
+    name: karakeep_data
+    external: true
+  tailscale-data-karakeep:
+    name: tailscale-data-karakeep
