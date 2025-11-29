@@ -1,3 +1,4 @@
+#!/bin/bash
 # These versions are apps that aren't built locally and need to be specified.
 # Caddy and Calibre versions are specified in the docker-bake.hcl configuration.
 while IFS='|' read -r key value; do
