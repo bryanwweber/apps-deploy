@@ -15,6 +15,11 @@ services:
     cap_add:
       - net_admin
       - sys_module
+    healthcheck:
+      test: ["CMD_SHELL", "tailscale status"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
     restart: unless-stopped
   caddy:
     image: ghcr.io/bryanwweber/caddy:${CADDY_VERSION}
@@ -23,7 +28,8 @@ services:
       - .env
     network_mode: service:ts-caddy
     depends_on:
-      - ts-caddy
+      ts-caddy:
+        condition: service_healthy
     volumes:
       - ./conf:/etc/caddy
       - caddy_data:/data

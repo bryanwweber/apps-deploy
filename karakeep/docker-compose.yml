@@ -15,6 +15,11 @@ services:
     cap_add:
       - net_admin
       - sys_module
+    healthcheck:
+      test: ["CMD_SHELL", "tailscale status"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
     restart: unless-stopped
   karakeep:
     image: ghcr.io/karakeep-app/karakeep:${KARAKEEP_VERSION}
@@ -31,9 +36,12 @@ services:
       # OPENAI_API_KEY: ...
       DATA_DIR: /data
     depends_on:
-      - meilisearch
-      - chrome
-      - ts-karakeep
+      meilisearch:
+        condition: service_started
+      chrome:
+        condition: service_started
+      ts-karakeep:
+        condition: service_healthy
   chrome:
     image: gcr.io/zenika-hub/alpine-chrome:123
     restart: unless-stopped
@@ -46,7 +54,8 @@ services:
       - --hide-scrollbars
     network_mode: service:ts-karakeep
     depends_on:
-      - ts-karakeep
+      ts-karakeep:
+        condition: service_healthy
   meilisearch:
     image: getmeili/meilisearch:v1.15.2
     restart: unless-stopped
@@ -58,7 +67,8 @@ services:
       - meilisearch:/meili_data
     network_mode: service:ts-karakeep
     depends_on:
-      - ts-karakeep
+      ts-karakeep:
+        condition: service_healthy
 
 volumes:
   meilisearch:

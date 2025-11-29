@@ -15,6 +15,11 @@ services:
     cap_add:
       - net_admin
       - sys_module
+    healthcheck:
+      test: ["CMD_SHELL", "tailscale status"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
     restart: unless-stopped
   atuin:
     restart: unless-stopped
@@ -28,8 +33,10 @@ services:
       ATUIN_DB_URI: postgres://${ATUIN_DB_USERNAME}:${ATUIN_DB_PASSWORD}@localhost/${ATUIN_DB_NAME}
       RUST_LOG: info,atuin_server=debug
     depends_on:
-      - atuin-db
-      - ts-atuin
+      atuin-db:
+        condition: service_healthy
+      ts-atuin:
+        condition: service_healthy
   atuin-db:
     image: postgres:${POSTGRES_VERSION}
     restart: unless-stopped
@@ -40,8 +47,14 @@ services:
       POSTGRES_USER: ${ATUIN_DB_USERNAME}
       POSTGRES_PASSWORD: ${ATUIN_DB_PASSWORD}
       POSTGRES_DB: ${ATUIN_DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
-      - ts-atuin
+      ts-atuin:
+        condition: service_healthy
 
 volumes:
   atuin-data:
