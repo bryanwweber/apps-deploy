@@ -8,13 +8,14 @@ SERVICENAME="apps-deploy"
 
 echo "Creating systemd service... /etc/systemd/system/${SERVICENAME}.service"
 # Create systemd service file
-sudo tee /etc/systemd/system/$SERVICENAME.service > /dev/null <<EOF
+sudo tee /etc/systemd/system/${SERVICENAME}.service > /dev/null <<EOF
 [Unit]
-Description=$SERVICENAME
+Description=Start docker compose applications for $(basename "$(pwd)")
 Requires=docker.service
 After=docker.service
 
 [Service]
+Type=simple
 Restart=always
 User=apps-deploy
 Group=docker
@@ -33,6 +34,6 @@ EOF
 
 echo "Enabling & starting $SERVICENAME"
 # Autostart systemd service
-sudo systemctl enable "$SERVICENAME.service"
+sudo systemctl enable "${SERVICENAME}.service"
 # Start systemd service now
-sudo systemctl start "$SERVICENAME.service"
+sudo systemctl start "${SERVICENAME}.service"
