@@ -26,7 +26,7 @@ jobs:
       matrix: ${{ steps.generate.outputs.matrix }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
       - name: Create .env files
@@ -37,13 +37,13 @@ jobs:
           touch karakeep/.env
       - name: Generate build matrix
         id: generate
-        uses: docker/bake-action/subaction/matrix@3acf805d94d93a86cce4ca44798a76464a75b88c # v6.9.0
+        uses: docker/bake-action/subaction/matrix@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         with:
           target: ${{ inputs.target }}
           fields: platforms
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@318604b99e75e41977312d83839a89be02ca4893 # v5.9.0
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: ${{ inputs.registry }}/${{ inputs.image_name }}
           tags: |
@@ -76,7 +76,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
       - name: Cache
@@ -111,7 +111,7 @@ jobs:
           skip-extraction: ${{ steps.cache.outputs.cache-hit }}
       - name: Build and push image
         id: bake
-        uses: docker/bake-action@3acf805d94d93a86cce4ca44798a76464a75b88c # v6.9.0
+        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         with:
           targets: ${{ matrix.target }}
           files: |
