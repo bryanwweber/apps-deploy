@@ -7,6 +7,13 @@ on:
     paths:
       - "versions.sh"
   workflow_call:
+    secrets:
+      TS_OAUTH_CLIENT_ID:
+        required: true
+      TS_AUDIENCE:
+        required: true
+      HETZNER_KNOWN_HOST:
+        required: true
   workflow_dispatch:
 
 permissions: {}
