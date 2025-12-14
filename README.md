@@ -23,6 +23,25 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
 1. Install Docker and Tailscale (the latter for SSH access after setup)
    1. <https://docs.docker.com/engine/install>
    1. <https://tailscale.com/kb/1031/install-linux>
+1. Login with Tailscale: `tailscale up --ssh --advertise-exit-node`
+1. Add the host IP address from Hetzner to Namecheap API access: <https://ap.www.namecheap.com/settings/tools/apiaccess/>
+1. Configure Tailscale ACLs to allow access to the new node. Set the node to have the `login-node` tag, and make sure the ACLs are configred so `bweber` and `github-actions` can login, for example:
+
+   ```json
+		{
+			"src":    ["autogroup:member"],
+			"dst":    ["tag:login-host"],
+			"users":  ["bweber"],
+			"action": "accept",
+		},
+		{
+			"src":    ["tag:github-actions"],
+			"dst":    ["tag:login-host"],
+			"users":  ["apps-deploy"],
+			"action": "accept",
+		},
+      ```
+
 1. Create a system user to run Docker compose and a regular user for SSH login:
 
    ```bash
@@ -96,7 +115,7 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
        TS_AUTHKEY=
        ```
 
-1. Create the external volumes for the services
+1. Create the external volumes for the services as root
 
    ```bash
    docker volume create atuin_postgres \
@@ -105,7 +124,7 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
    && docker volume create kosyncserver_data
    ```
 
-1. Create the `systemd` service with the script in the repo. This needs to run as root. This will also start the services, so monitor for startup.
+1. Create the `systemd` service with the script in the repo. This needs to run as root, not the `apps-deploy` user. This will also start the services, so monitor for startup.
 
    ```bash
    cd /home/apps-deploy/apps-deploy
@@ -117,6 +136,5 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
 
    ```bash
    echo "PermitRootLogin no" >> /etc/ssh/sshd_config
-   echo "AllowedUsers apps-deploy bweber" >> /etc/ssh/sshd_config
    systemctl ssh restart
    ```

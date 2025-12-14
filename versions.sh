@@ -6,7 +6,7 @@ while IFS='|' read -r key value; do
 done < <(/usr/bin/docker buildx bake --progress quiet --file docker-bake.hcl --print \
     | jq -r '.target[] | .args | to_entries[] | "\(.key)|\(.value)"')
 export ATUIN_VERSION=18.10.0
-export KARAKEEP_VERSION=0.29.1
+export KARAKEEP_VERSION=0.29.3
 export KOSYNCSERVER_VERSION=1.2.1
 export TAILSCALE_VERSION=v1.90.9
 export POSTGRES_VERSION=18.1
