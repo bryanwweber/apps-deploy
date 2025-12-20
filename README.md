@@ -24,8 +24,8 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
    1. <https://docs.docker.com/engine/install>
    1. <https://tailscale.com/kb/1031/install-linux>
 1. Login with Tailscale: `tailscale up --ssh --advertise-exit-node`
-1. Add the host IP address from Hetzner to Namecheap API access: <https://ap.www.namecheap.com/settings/tools/apiaccess/>
-1. Configure Tailscale ACLs to allow access to the new node. Set the node to have the `login-node` tag, and make sure the ACLs are configred so `bweber` and `github-actions` can login, for example:
+1. Add the host IP address from the hosting company to Namecheap API access: <https://ap.www.namecheap.com/settings/tools/apiaccess/>
+1. Configure Tailscale ACLs to allow access to the new node. Set the node to have the `login-node` tag, and make sure the ACLs are configured so `bweber` and `github-actions` can login, for example:
 
    ```json
 		{
@@ -40,7 +40,7 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
 			"users":  ["apps-deploy"],
 			"action": "accept",
 		},
-      ```
+    ```
 
 1. Create a system user to run Docker compose and a regular user for SSH login:
 
@@ -52,89 +52,46 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
    usermod -aG sudo bweber # For Ubuntu. I think the group is wheel on Fedora
    ```
 
-1. Update the sudoers file so apps-deploy can start/restart the systemctl service. Run `visudo` and add:
-
-   ```
-   Cmnd_Alias APPS_DEPLOY_CMD = /usr/bin/systemctl start apps-deploy.service, /usr/bin/systemctl restart apps-deploy.service, /usr/bin/systemctl stop apps-deploy.service
-   apps-deploy ALL=(ALL) NOPASSWD: APPS_DEPLOY_CMD
-   ```
-
-1. Clone the repo as the `apps-deploy` user:
-
-   ```bash
-   su - apps-deploy
-   git clone https://github.com/bryanwweber/apps-deploy
-   ```
-
-1. Copy the Calibre library from the laptop to the remote, somehow, probably rsync
-1. Set up credentials for the applications. These need to go in `.env` files in each of the sub-folders of the repo
-   1. Atuin
-
-      ```shell
-      ATUIN_DB_NAME=atuin
-      ATUIN_DB_USERNAME=atuin
-      # Choose your own secure password. Stick to [A-Za-z0-9.~_-]
-      ATUIN_DB_PASSWORD=
-      TS_AUTHKEY=
-      ```
-
-   1. Caddy
-
-      ```shell
-      PUBLIC_CLIENT_IP=
-
-      NAMECHEAP_API_KEY=
-      NAMECHEAP_API_USER=
-      TS_AUTHKEY=
-      ```
-
-   1. Calibre
-
-      ```shell
-      CALIBRE_LIBRARY="/root/Calibre Library"
-      TS_AUTHKEY=
-      ```
-
-   1. Karakeep
-
-      ```shell
-      NEXTAUTH_URL="http://localhost:3000"
-
-      DISABLE_SIGNUPS=true
-      CRAWLER_FULL_PAGE_ARCHIVE=true
-
-      NEXTAUTH_SECRET=
-      MEILI_MASTER_KEY=
-      OPENAI_API_KEY=
-      TS_AUTHKEY=
-      ```
-
-   1. kosyncserver
-
-       ```shell
-       TS_AUTHKEY=
-       ```
-
-1. Create the external volumes for the services as root
-
-   ```bash
-   docker volume create atuin_postgres \
-   && docker volume create karakeep_meilisearch \
-   && docker volume create karakeep_data \
-   && docker volume create kosyncserver_data
-   ```
-
-1. Create the `systemd` service with the script in the repo. This needs to run as root, not the `apps-deploy` user. This will also start the services, so monitor for startup.
-
-   ```bash
-   cd /home/apps-deploy/apps-deploy
-   ./compose-service.sh
-   systemctl status apps-deploy
-   ```
-
 1. Disable SSH for the root user. Make sure that the `bweber` user has `sudo` permissions
 
    ```bash
    echo "PermitRootLogin no" >> /etc/ssh/sshd_config
    systemctl ssh restart
    ```
+
+1. Copy the Calibre library from the local machine to the remote, somehow, probably rsync
+1. Create a Docker context on the local machine using the Tailscale SSH connection. This lets you run any Docker commands locally and they will be run on the remote host.
+
+   ```bash
+   docker context create hetzner-host --docker "host=ssh://apps-deploy@hetzner-host.<Magic DNS hostname>.ts.net"
+   docker context use hetzner-host
+   ```
+
+1. Create the external volumes for the services
+
+   ```bash
+   docker volume create atuin_postgres \
+   && docker volume create karakeep_meilisearch \
+   && docker volume create karakeep_data \
+   && docker volume create kosyncserver_data \
+   && docker volume create forgejo_postgres
+   ```
+
+1. Start the deployment from the local machine:
+
+   ```bash
+   source versions.sh
+   export CADDY_CONFIG_ROOT=/tmp/caddy/conf
+   export PUBLIC_CLIENT_IP=<Public IP address of the host>
+   rsync -vzR ./caddy/conf/Caddyfile apps-deploy@hetzner-host<Magic DNS hostname>.ts.net:/tmp/
+   op run --env-file=.env.tpl -- docker compose up --detach --wait --wait-timeout 30
+   ```
+ 
+1. Add the known host string for the remote host to a secret in the GitHub `deploy` environment in this repo. Add the Tailscale name of the host and the `apps-deploy` user to the GitHub variables for the environment. Add the public IP address of the host to a secret in the environment.
+
+## Adding a new application
+
+1. Create a new directory for the application and add a suitable `docker-compose.yml` file
+1. Add the application version to the `versions.sh` file
+1. Add the application sample `.env` file to this `README` in the new host setup section
+1. Add a tag for the application to the Tailscale configuration, making sure the owners are `autogroup:owner` and `tag:apps-deploy`
