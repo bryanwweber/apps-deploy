@@ -74,7 +74,8 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
    && docker volume create karakeep_meilisearch \
    && docker volume create karakeep_data \
    && docker volume create kosyncserver_data \
-   && docker volume create forgejo_postgres
+   && docker volume create forgejo_postgres \
+   && docker volume create forgejo_data
    ```
 
 1. Start the deployment from the local machine:
@@ -91,7 +92,9 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
 
 ## Adding a new application
 
-1. Create a new directory for the application and add a suitable `docker-compose.yml` file
+1. Create a new directory for the application and add a suitable `docker-compose.yml` file. Double check that the tag assigned for the Tailscale configuration is correct.
+1. Add the application `docker-compose.yml` to the root `docker-compose.yml` file
 1. Add the application version to the `versions.sh` file
-1. Add the application sample `.env` file to this `README` in the new host setup section
 1. Add a tag for the application to the Tailscale configuration, making sure the owners are `autogroup:owner` and `tag:apps-deploy`
+1. If the new application needs a persistent volume, add it to the step above to create the volume, and then create the volume on the remote host using the Docker context.
+1. Add the application to the Caddyfile
