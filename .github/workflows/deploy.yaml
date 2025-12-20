@@ -14,6 +14,10 @@ on:
         required: true
       HETZNER_KNOWN_HOST:
         required: true
+      PUBLIC_CLIENT_IP:
+        required: true
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: true
   workflow_dispatch:
 
 permissions: {}
@@ -26,7 +30,12 @@ jobs:
     permissions:
       # Needed for the OIDC token used by the Tailscale action
       id-token: write
+      contents: read
     steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
       - name: Set up ssh dir
         run: |
           mkdir -p ~/.ssh/
@@ -41,10 +50,19 @@ jobs:
           audience: ${{ secrets.TS_AUDIENCE }}
           tags: tag:github-actions
           ping: ${{ vars.HETZNER_HOST }}
+      - name: Install op
+        uses: 1Password/install-cli-action@9a0c9dd934086b7ab1d90115d455bda1c53c2bdb # v2.0.2
       - name: Pull and restart the containers
         run: |
-          ssh -o StrictHostKeyChecking=yes ${USER}@${HOST} "cd $REMOTE_ROOT; git pull; ./update-containers.sh"
+          source versions.sh
+          rsync -vzR ./caddy/conf/Caddyfile ${HETZNER_USER}@${HETZNER_HOST}:/tmp/
+          op run --env-file .env.tpl -- docker compose down
+          op run --env-file .env.tpl -- docker compose pull --quiet
+          op run --env-file .env.tpl -- docker compose up --detach --wait --wait-timeout 30
         env:
-          USER: apps-deploy
-          HOST: ${{ vars.HETZNER_HOST }}
-          REMOTE_ROOT: /home/apps-deploy/apps-deploy
+          HETZNER_USER: ${{ vars.HETZNER_USER }}
+          HETZNER_HOST: ${{ vars.HETZNER_HOST }}
+          CADDY_CONFIG_ROOT: /tmp/caddy/conf
+          DOCKER_HOST: ssh://${{ vars.HETZNER_USER }}@${{ vars.HETZNER_HOST }}
+          PUBLIC_CLIENT_IP: ${{ secrets.PUBLIC_CLIENT_IP }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}

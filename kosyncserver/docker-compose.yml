@@ -2,8 +2,6 @@ services:
   ts-kosyncserver:
     image: ghcr.io/tailscale/tailscale:${TAILSCALE_VERSION}
     hostname: kosyncserver
-    env_file:
-      - .env
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
       - TS_EXTRA_ARGS=--advertise-tags=tag:kosyncserver
