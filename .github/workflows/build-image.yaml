@@ -59,7 +59,7 @@ jobs:
         env:
           BAKE_FILE: ${{ steps.meta.outputs.bake-file }}
       - name: Upload meta bake definition
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: bake-meta
           path: ${{ runner.temp }}/bake-meta.json
@@ -82,7 +82,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Download meta bake definition
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: bake-meta
           path: ${{ runner.temp }}
@@ -124,7 +124,7 @@ jobs:
           PLATFORM: ${{ matrix.platforms }}
       - name: Upload digest
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: digests-${{ steps.set-platform-pair.outputs.platform-pair }}
           path: ${{ runner.temp }}/digests/*
@@ -144,12 +144,12 @@ jobs:
       IMAGE_NAME: ${{ inputs.image_name }}
     steps:
       - name: Download meta bake definition
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: bake-meta
           path: ${{ runner.temp }}
       - name: Download digests
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: ${{ runner.temp }}/digests
           pattern: digests-*
