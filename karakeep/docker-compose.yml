@@ -2,8 +2,6 @@ services:
   ts-karakeep:
     image: ghcr.io/tailscale/tailscale:${TAILSCALE_VERSION}
     hostname: karakeep
-    env_file:
-      - .env
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
       - TS_EXTRA_ARGS=--advertise-tags=tag:karakeep
@@ -27,14 +25,17 @@ services:
     volumes:
       - karakeep-data:/data
     network_mode: service:ts-karakeep
-    env_file:
-      - .env
     environment:
       # These hosts need to be localhost because all the containers are in the ts-karakeep namespace
-      MEILI_ADDR: http://localhost:7700
-      BROWSER_WEB_URL: http://localhost:9222
-      # OPENAI_API_KEY: ...
-      DATA_DIR: /data
+      MEILI_ADDR: ${MEILI_ADDR:-http://localhost:7700}
+      BROWSER_WEB_URL: ${BROWSER_WEB_URL:-http://localhost:9222}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      DATA_DIR: ${DATA_DIR:-/data}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      DISABLE_SIGNUPS: ${DISABLE_SIGNUPS:-true}
+      CRAWLER_FULL_PAGE_ARCHIVE: ${CRAWLER_FULL_PAGE_ARCHIVE:-true}
     depends_on:
       meilisearch:
         condition: service_started
@@ -59,10 +60,9 @@ services:
   meilisearch:
     image: getmeili/meilisearch:v1.15.2
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
       MEILI_NO_ANALYTICS: "true"
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
     volumes:
       - meilisearch:/meili_data
     network_mode: service:ts-karakeep

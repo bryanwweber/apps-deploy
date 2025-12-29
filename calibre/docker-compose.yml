@@ -2,8 +2,6 @@ services:
   ts-calibre:
     image: ghcr.io/tailscale/tailscale:${TAILSCALE_VERSION}
     hostname: calibre
-    env_file:
-      - .env
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
       - TS_EXTRA_ARGS=--advertise-tags=tag:calibre
@@ -23,11 +21,11 @@ services:
     restart: unless-stopped
   calibre:
     image: ghcr.io/bryanwweber/calibre:${CALIBRE_VERSION}-${UBUNTU_VERSION}
-    env_file:
-      - .env
     restart: unless-stopped
     volumes:
-      - ${CALIBRE_LIBRARY}:/library
+      - type: bind
+        source: ${CALIBRE_LIBRARY}
+        target: /library
     depends_on:
       ts-calibre:
         condition: service_healthy
