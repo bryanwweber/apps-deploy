@@ -28,7 +28,7 @@ jobs:
       - name: Setup uv
         uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867 # v7.1.6
       - name: Tailscale
-        uses: tailscale/github-action@a392da0a182bba0e9613b6243ebd69529b1878aa # v4.1.0
+        uses: tailscale/github-action@53acf823325fe9ca47f4cdaa951f90b4b0de5bb9 # v4.1.1
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           audience: ${{ secrets.TS_AUDIENCE }}
