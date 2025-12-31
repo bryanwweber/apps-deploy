@@ -1,5 +1,7 @@
+# This file must be processed by 1Password CLI to fill in the templated variables
 # We don't care about unused variables in this file
 # shellcheck disable=2034
+
 # Tailscale (common)
 TS_AUTHKEY="op://App Deployment/Tailscale AuthKey/credential"
 
@@ -15,7 +17,14 @@ CADDY_CONFIG_ROOT=${CADDY_CONFIG_ROOT:-./conf}
 PUBLIC_CLIENT_IP=${PUBLIC_CLIENT_IP}
 
 # Calibre
+# The escaped space in the default value is needed so the Dotenv library that op uses
+# can parse the file
 CALIBRE_LIBRARY="${CALIBRE_LIBRARY:-/home/bweber/Calibre\ Library}"
+
+# Forgejo
+FORGEJO_DB_USERNAME="op://App Deployment/Forgejo DB/username"
+FORGEJO_DB_NAME="op://App Deployment/Forgejo DB/db name"
+FORGEJO_DB_PASSWORD="op://App Deployment/Forgejo DB/password"
 
 # Karakeep
 NEXTAUTH_SECRET="op://App Deployment/NextAuth Secret Token/credential"

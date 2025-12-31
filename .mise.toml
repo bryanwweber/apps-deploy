@@ -1,4 +1,5 @@
 [tools]
+uv = "latest"
 zizmor = "latest"
 
 [settings]
