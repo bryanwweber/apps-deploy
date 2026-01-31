@@ -34,6 +34,7 @@ jobs:
         uses: docker/bake-action/subaction/matrix@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         with:
           target: ${{ inputs.target }}
+          files: docker-bake.hcl
           fields: platforms
       - name: Extract metadata (tags, labels) for Docker
         id: meta
