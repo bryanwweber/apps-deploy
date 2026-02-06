@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
-ARG UBUNTU_VERSION=noble-20251001
+ARG UBUNTU_VERSION
 
 FROM curlimages/curl-base:latest AS base
-ARG CALIBRE_VERSION=8.13.0
+ARG CALIBRE_VERSION
 ARG TARGETARCH
 
 RUN apk add --no-cache xz tar
