@@ -9,11 +9,11 @@ variable "CADDY_VERSION" {
 }
 
 variable "CALIBRE_VERSION" {
-  default = "9.1.0"
+  default = "9.2.0"
 }
 
 variable "UBUNTU_VERSION" {
-  default = "noble-20251001"
+  default = "noble-20260113"
 }
 
 target "caddy" {
