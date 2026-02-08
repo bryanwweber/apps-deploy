@@ -20,7 +20,7 @@ services:
       retries: 60
     restart: unless-stopped
   caddy:
-    image: ghcr.io/bryanwweber/caddy:${CADDY_VERSION}
+    image: ghcr.io/bryanwweber/caddy:${CADDY_VERSION}-${CADDY_DNS_NAMECHEAP_VERSION}
     restart: unless-stopped
     environment:
       - PUBLIC_CLIENT_IP=${PUBLIC_CLIENT_IP}
@@ -31,7 +31,6 @@ services:
       ts-caddy:
         condition: service_healthy
     volumes:
-      - ${CADDY_CONFIG_ROOT}:/etc/caddy
       - caddy_data:/data
       - caddy_config:/config
 

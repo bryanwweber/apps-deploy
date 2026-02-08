@@ -8,6 +8,7 @@ on:
       - ".github/workflows/build-caddy.yaml"
       - ".github/workflows/build-image.yaml"
       - "caddy/Dockerfile"
+      - "caddy/conf/Caddyfile"
       - "docker-bake.hcl"
   pull_request:
     branches:
@@ -16,6 +17,7 @@ on:
       - ".github/workflows/build-caddy.yaml"
       - ".github/workflows/build-image.yaml"
       - "caddy/Dockerfile"
+      - "caddy/conf/Caddyfile"
       - "docker-bake.hcl"
   workflow_dispatch:
 
@@ -43,7 +45,7 @@ jobs:
       - name: Get latest caddy version
         id: get-version
         run: |
-          echo "version=$(docker buildx bake --file docker-bake.hcl caddy --print | jq -r '.target.caddy.args.CADDY_VERSION')" >> $GITHUB_OUTPUT
+          echo "version=$(docker buildx bake --file docker-bake.hcl caddy --print | jq -r '.target.caddy.args | .CADDY_VERSION + "-" + .CADDY_DNS_NAMECHEAP_VERSION')" >> $GITHUB_OUTPUT
       - name: Get latest published caddy tag
         id: get-tags
         run: |

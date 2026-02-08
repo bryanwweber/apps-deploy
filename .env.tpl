@@ -13,7 +13,6 @@ ATUIN_DB_PASSWORD="op://App Deployment/Atuin DB Password/password"
 # Caddy
 NAMECHEAP_API_KEY="op://App Deployment/Namecheap API Key/credential"
 NAMECHEAP_API_USER="op://App Deployment/Namecheap API Key/username"
-CADDY_CONFIG_ROOT=${CADDY_CONFIG_ROOT:-./conf}
 PUBLIC_CLIENT_IP=${PUBLIC_CLIENT_IP}
 
 # Calibre

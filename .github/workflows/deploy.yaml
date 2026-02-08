@@ -55,14 +55,12 @@ jobs:
       - name: Pull and restart the containers
         run: |
           source versions.sh
-          rsync -vzR ./caddy/conf/Caddyfile ${HETZNER_USER}@${HETZNER_HOST}:/tmp/
           op run --env-file .env.tpl -- docker compose down
           op run --env-file .env.tpl -- docker compose pull --quiet
           op run --env-file .env.tpl -- docker compose up --detach --wait --wait-timeout 30
         env:
           HETZNER_USER: ${{ vars.HETZNER_USER }}
           HETZNER_HOST: ${{ vars.HETZNER_HOST }}
-          CADDY_CONFIG_ROOT: /tmp/caddy/conf
           DOCKER_HOST: ssh://${{ vars.HETZNER_USER }}@${{ vars.HETZNER_HOST }}
           PUBLIC_CLIENT_IP: ${{ secrets.PUBLIC_CLIENT_IP }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
