@@ -8,6 +8,10 @@ variable "CADDY_VERSION" {
   default = "2.10.2"
 }
 
+variable "CADDY_DNS_NAMECHEAP_VERSION" {
+  default = "1.0.0"
+}
+
 variable "CALIBRE_VERSION" {
   default = "9.2.1"
 }
@@ -22,8 +26,9 @@ target "caddy" {
   dockerfile = "Dockerfile"
   args = {
     "CADDY_VERSION" = "${CADDY_VERSION}"
+    "CADDY_DNS_NAMECHEAP_VERSION" = "${CADDY_DNS_NAMECHEAP_VERSION}"
   }
-  tags = [ "ghcr.io/bryanwweber/caddy:${CADDY_VERSION}", "ghcr.io/bryanwweber/caddy:latest" ]
+  tags = [ "ghcr.io/bryanwweber/caddy:${CADDY_VERSION}-${CADDY_DNS_NAMECHEAP_VERSION}", "ghcr.io/bryanwweber/caddy:latest" ]
   platforms = [ "linux/amd64", "linux/arm64" ]
   attest = [
     {
