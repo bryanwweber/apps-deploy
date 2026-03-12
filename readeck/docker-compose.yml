@@ -1,0 +1,37 @@
+services:
+  ts-readeck:
+    image: ghcr.io/tailscale/tailscale:${TAILSCALE_VERSION}
+    hostname: readeck
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
+      - TS_EXTRA_ARGS=--advertise-tags=tag:readeck
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - tailscale-data-readeck:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD-SHELL", "tailscale status"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
+    restart: unless-stopped
+  readeck:
+    image: codeberg.org/readeck/readeck:${READECK_VERSION}
+    restart: unless-stopped
+    network_mode: service:ts-readeck
+    volumes:
+      - readeck-data:/readeck
+    depends_on:
+      ts-readeck:
+        condition: service_healthy
+
+volumes:
+  readeck-data:
+    name: readeck_data
+    external: true
+  tailscale-data-readeck:
+    name: tailscale-data-readeck

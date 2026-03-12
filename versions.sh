@@ -8,6 +8,7 @@ done < <(/usr/bin/docker buildx bake --progress quiet --file docker-bake.hcl --p
 export ATUIN_VERSION=18.11.0
 export KARAKEEP_VERSION=0.31.0
 export KOSYNCSERVER_VERSION=1.2.1
+export READECK_VERSION=0.22.2
 export TAILSCALE_VERSION=v1.90.9
 export POSTGRES_VERSION=18.1
 export FORGEJO_VERSION=13.0.3

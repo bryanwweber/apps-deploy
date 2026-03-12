@@ -5,3 +5,4 @@ include:
   - forgejo/docker-compose.yml
   - karakeep/docker-compose.yml
   - kosyncserver/docker-compose.yml
+  - readeck/docker-compose.yml

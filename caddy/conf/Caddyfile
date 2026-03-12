@@ -22,6 +22,7 @@
 	@kosyncserver host kosyncserver.apps.bryanwweber.com
 	@atuin host atuin.apps.bryanwweber.com
 	@forgejo host forgejo.apps.bryanwweber.com
+	@readeck host readeck.apps.bryanwweber.com
 
 	# These proxies point to hosts on the tailnet. Make sure that the hostname of the
 	# tailscale service in each container matches the name used in the reverse proxy.
@@ -39,5 +40,8 @@
 	}
 	handle @forgejo {
 		reverse_proxy http://forgejo:3000
+	}
+	handle @readeck {
+		reverse_proxy http://readeck:8000
 	}
 }
