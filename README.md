@@ -98,3 +98,7 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
 1. Add a tag for the application to the Tailscale configuration, making sure the owners are `autogroup:owner` and `tag:apps-deploy`
 1. If the new application needs a persistent volume, add it to the step above to create the volume, and then create the volume on the remote host using the Docker context.
 1. Add the application to the Caddyfile
+
+## Starting Karakeep
+
+Karakeep is added to a profile so that it doesn't start by default. Use the `karakeep` profile argument to docker compose to start it.

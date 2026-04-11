@@ -19,6 +19,8 @@ services:
       timeout: 5s
       retries: 60
     restart: unless-stopped
+    profiles:
+      - karakeep
   karakeep:
     image: ghcr.io/karakeep-app/karakeep:${KARAKEEP_VERSION}
     restart: unless-stopped
@@ -36,6 +38,8 @@ services:
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       DISABLE_SIGNUPS: ${DISABLE_SIGNUPS:-true}
       CRAWLER_FULL_PAGE_ARCHIVE: ${CRAWLER_FULL_PAGE_ARCHIVE:-true}
+    profiles:
+      - karakeep
     depends_on:
       meilisearch:
         condition: service_started
@@ -54,6 +58,8 @@ services:
       - --remote-debugging-port=9222
       - --hide-scrollbars
     network_mode: service:ts-karakeep
+    profiles:
+      - karakeep
     depends_on:
       ts-karakeep:
         condition: service_healthy
@@ -66,6 +72,8 @@ services:
     volumes:
       - meilisearch:/meili_data
     network_mode: service:ts-karakeep
+    profiles:
+      - karakeep
     depends_on:
       ts-karakeep:
         condition: service_healthy
