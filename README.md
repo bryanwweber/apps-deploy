@@ -84,9 +84,7 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
 
    ```bash
    source versions.sh
-   export CADDY_CONFIG_ROOT=/tmp/caddy/conf
    export PUBLIC_CLIENT_IP=<Public IP address of the host>
-   rsync -vzR ./caddy/conf/Caddyfile apps-deploy@hetzner-host<Magic DNS hostname>.ts.net:/tmp/
    op run --env-file=.env.tpl -- docker compose up --detach --wait --wait-timeout 30
    ```
  
