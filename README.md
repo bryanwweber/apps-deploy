@@ -76,7 +76,8 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
    && docker volume create kosyncserver_data \
    && docker volume create forgejo_postgres \
    && docker volume create forgejo_data \
-   && docker volume create readeck_data
+   && docker volume create readeck_data \
+   && docker volume create readeck_db
    ```
 
 1. Start the deployment from the local machine:

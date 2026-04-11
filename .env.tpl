@@ -35,3 +35,8 @@ DATA_DIR=${DATA_DIR:-/data}
 NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
 DISABLE_SIGNUPS=${DISABLE_SIGNUPS:-true}
 CRAWLER_FULL_PAGE_ARCHIVE=${CRAWLER_FULL_PAGE_ARCHIVE:-true}
+
+# Readeck
+READECK_DB_USERNAME="op://App Deployment/Readeck DB/username"
+READECK_DB_NAME="op://App Deployment/Readeck DB/db name"
+READECK_DB_PASSWORD="op://App Deployment/Readeck DB/password"
