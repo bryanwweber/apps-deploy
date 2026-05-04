@@ -76,16 +76,15 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
    && docker volume create kosyncserver_data \
    && docker volume create forgejo_postgres \
    && docker volume create forgejo_data \
-   && docker volume create readeck_data
+   && docker volume create readeck_data \
+   && docker volume create readeck_db
    ```
 
 1. Start the deployment from the local machine:
 
    ```bash
    source versions.sh
-   export CADDY_CONFIG_ROOT=/tmp/caddy/conf
    export PUBLIC_CLIENT_IP=<Public IP address of the host>
-   rsync -vzR ./caddy/conf/Caddyfile apps-deploy@hetzner-host<Magic DNS hostname>.ts.net:/tmp/
    op run --env-file=.env.tpl -- docker compose up --detach --wait --wait-timeout 30
    ```
  
@@ -99,3 +98,7 @@ For caddy and calibre, edit the version in `docker-bake.hcl`. For the other appl
 1. Add a tag for the application to the Tailscale configuration, making sure the owners are `autogroup:owner` and `tag:apps-deploy`
 1. If the new application needs a persistent volume, add it to the step above to create the volume, and then create the volume on the remote host using the Docker context.
 1. Add the application to the Caddyfile
+
+## Starting Karakeep
+
+Karakeep is added to a profile so that it doesn't start by default. Use the `karakeep` profile argument to docker compose to start it.
