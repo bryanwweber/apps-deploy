@@ -5,7 +5,7 @@ group "default" {
 target "docker-metadata-action" {}
 
 variable "CADDY_VERSION" {
-  default = "2.11.2"
+  default = "2.11.3"
 }
 
 variable "CADDY_DNS_NAMECHEAP_VERSION" {
