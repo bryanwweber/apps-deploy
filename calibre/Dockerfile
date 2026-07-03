@@ -34,7 +34,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     libgl1 \
     libnss3 \
     libopengl0 \
-    libqpdf29t64 \
+    libqpdf30 \
     libxcb-cursor0 \
     libxcb-icccm4 \
     libxcb-image0 \
