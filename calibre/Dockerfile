@@ -34,7 +34,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     libgl1 \
     libnss3 \
     libopengl0 \
-    libqpdf30t64 \
+    libqpdf \
     libxcb-cursor0 \
     libxcb-icccm4 \
     libxcb-image0 \
@@ -54,4 +54,4 @@ USER ubuntu
 
 EXPOSE 8080
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
-CMD [ "/usr/bin/calibre-server", "--access-log=/var/log/calibre.log", "--disable-use-bonjour", "--trusted-ips=0.0.0.0", "--enable-local-write", "--listen-on", "0.0.0.0", "--auth-mode=basic", "--url-prefix", "/calibre", "/library" ]
+CMD [ "/usr/bin/calibre-server", "--access-log=/var/log/calibre.log", "--disable-use-bonjour", "--trusted-ips=0.0.0.0", "--enable-local-write", "--listen-on", "0.0.0.0", "--auth-mode=basic", "--ur[...]
