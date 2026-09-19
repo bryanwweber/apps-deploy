@@ -56,7 +56,7 @@ jobs:
     permissions:
       packages: write
       attestations: write
-    uses: ./.github/workflows/build-image.yaml
+    uses: $/.github/workflows/build-image.yaml
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
     needs:
@@ -74,7 +74,7 @@ jobs:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     needs:
       - build-calibre
-    uses: ./.github/workflows/deploy.yaml
+    uses: $/.github/workflows/deploy.yaml
     secrets:
       TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
       TS_AUDIENCE: ${{ secrets.TS_AUDIENCE }}

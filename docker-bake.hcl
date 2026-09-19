@@ -17,7 +17,7 @@ variable "CALIBRE_VERSION" {
 }
 
 variable "UBUNTU_VERSION" {
-  default = "resolute-20260707"
+  default = "resolute-20260912"
 }
 
 target "caddy" {

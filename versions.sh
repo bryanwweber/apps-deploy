@@ -5,10 +5,10 @@ while IFS='|' read -r key value; do
     export "${key}=${value}"
 done < <(/usr/bin/docker buildx bake --progress quiet --file docker-bake.hcl --print \
     | jq -r '.target[] | .args | to_entries[] | "\(.key)|\(.value)"')
-export ATUIN_VERSION=18.11.0
+export ATUIN_VERSION=18.22.0
 export KARAKEEP_VERSION=0.31.0
 export KOSYNCSERVER_VERSION=1.2.1
-export READECK_VERSION=0.22.3
-export TAILSCALE_VERSION=v1.96.5
+export READECK_VERSION=0.23.4
+export TAILSCALE_VERSION=v1.102.4
 export POSTGRES_VERSION=18.3
-export FORGEJO_VERSION=15.0.6
+export FORGEJO_VERSION=15.0.9
