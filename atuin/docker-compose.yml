@@ -22,7 +22,7 @@ services:
   atuin:
     restart: unless-stopped
     image: ghcr.io/atuinsh/atuin:${ATUIN_VERSION}
-    command: server start
+    command: start
     network_mode: service:ts-atuin
     environment:
       ATUIN_HOST: "0.0.0.0"
