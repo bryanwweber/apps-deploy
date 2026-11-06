@@ -13,11 +13,11 @@ variable "CADDY_DNS_NAMECHEAP_VERSION" {
 }
 
 variable "CALIBRE_VERSION" {
-  default = "9.17.0"
+  default = "9.18.0"
 }
 
 variable "UBUNTU_VERSION" {
-  default = "resolute-20260912"
+  default = "resolute-20261024.1"
 }
 
 target "caddy" {
