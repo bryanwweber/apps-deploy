@@ -1,8 +1,0 @@
-[[tools.zizmor]]
-version = "1.17.0"
-backend = "aqua:zizmorcore/zizmor"
-
-[tools.zizmor.platforms.linux-x64]
-checksum = "sha256:d8c3d6d14ecd442fbfb87706f120736cee84b04c511834a34527adfc968f8108"
-size = 7804639
-url = "https://github.com/zizmorcore/zizmor/releases/download/v1.17.0/zizmor-x86_64-unknown-linux-gnu.tar.gz"
